@@ -45,32 +45,32 @@ export const RISK_GRADE_THRESHOLDS = [
 ] as const;
 
 export const CELESTIAL_COLORS: Record<string, string> = {
-  USX: '#6366f1',
-  eUSX: '#8b5cf6',
-  SLX: '#14b8a6',
-  stSLX: '#10b981',
-  PT: '#f59e0b',
-  YT: '#ef4444',
-  Kamino: '#3b82f6',
-  Loopscale: '#8b5cf6',
-  Exponent: '#ec4899',
-  Raydium: '#06b6d4',
-  Orca: '#f8fafc',
+  USX: '#F6A04D',
+  eUSX: '#F7B36C',
+  SLX: '#D3C7E7',
+  stSLX: '#EAB0BE',
+  PT: '#F7B36C',
+  YT: '#EAB0BE',
+  Kamino: '#D3C7E7',
+  Loopscale: '#D3C7E7',
+  Exponent: '#EAB0BE',
+  Raydium: '#F6A04D',
+  Orca: '#F5F0EB',
 };
 
 export const PLANET_TOKENS = ['USX', 'eUSX', 'SLX', 'stSLX'] as const;
 
 export const RISK_GRADE_COLORS: Record<string, string> = {
-  A: '#22c55e',
-  B: '#3b82f6',
-  C: '#f59e0b',
-  D: '#f97316',
+  A: '#4ade80',
+  B: '#D3C7E7',
+  C: '#F6A04D',
+  D: '#F7B36C',
   F: '#ef4444',
 };
 
 export const SCORE_COLORS = {
-  high: '#22c55e',
-  mid: '#3b82f6',
-  low: '#f59e0b',
+  high: '#4ade80',
+  mid: '#D3C7E7',
+  low: '#F6A04D',
   poor: '#ef4444',
 } as const;

@@ -6,6 +6,8 @@ import { Bloom, EffectComposer } from '@react-three/postprocessing';
 import type { Opportunity } from '@/lib/types';
 import { getPosition } from '@/lib/celestial-positions';
 import { StarField } from './star-field';
+import { NebulaBackground } from './nebula-background';
+import { OrbitalRings } from './orbital-rings';
 import { CelestialBody } from './celestial-body';
 import { CelestialLabel } from './celestial-label';
 import { GalaxyCamera } from './galaxy-camera';
@@ -28,19 +30,22 @@ function GalaxyContent({ opportunities, selectedId, onSelect }: Props) {
 
   const selectedPos = useMemo(() => {
     if (!selectedId) return null;
-    const item = positions.find((p) => p.opp.id === selectedId);
-    return item?.pos ?? null;
+    return positions.find((p) => p.opp.id === selectedId)?.pos ?? null;
   }, [selectedId, positions]);
 
   const handleReset = useCallback(() => onSelect(null), [onSelect]);
 
   return (
     <>
-      <ambientLight intensity={0.15} />
-      <pointLight position={[0, 5, 0]} intensity={0.8} color="#7c3aed" />
-      <pointLight position={[10, -3, -5]} intensity={0.4} color="#3b82f6" />
+      {/* Warm lighting */}
+      <ambientLight intensity={0.1} color="#F5F0EB" />
+      <pointLight position={[0, 8, 0]} intensity={0.9} color="#F6A04D" distance={40} />
+      <pointLight position={[-8, -3, 6]} intensity={0.4} color="#F7B36C" distance={30} />
+      <pointLight position={[10, -2, -8]} intensity={0.3} color="#D3C7E7" distance={25} />
 
+      <NebulaBackground />
       <StarField />
+      <OrbitalRings />
 
       {positions.map(({ opp, pos }) => (
         <group key={opp.id}>
@@ -64,9 +69,9 @@ function GalaxyContent({ opportunities, selectedId, onSelect }: Props) {
 
       <EffectComposer>
         <Bloom
-          luminanceThreshold={0.6}
-          luminanceSmoothing={0.4}
-          intensity={0.8}
+          luminanceThreshold={0.4}
+          luminanceSmoothing={0.6}
+          intensity={1.2}
         />
       </EffectComposer>
     </>
@@ -79,7 +84,7 @@ export function GalaxyScene({ opportunities, selectedId, onSelect }: Props) {
       <Canvas
         camera={{ position: [0, 10, 22], fov: 50, near: 0.1, far: 200 }}
         gl={{ antialias: true, alpha: false }}
-        style={{ background: '#050510' }}
+        style={{ background: '#0A0E1A' }}
         dpr={[1, 1.5]}
       >
         <Suspense fallback={null}>
