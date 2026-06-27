@@ -1,4 +1,4 @@
-# SolScout — Visual Blueprint
+# Yield Galaxy — Visual Blueprint
 
 **Role:** Product Designer + Creative Director
 **Date:** 2026-06-25
@@ -122,13 +122,13 @@ FOV:      52°
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────┐
-│ [Captain 24px]  SolScout           [Galaxy] [List]        16 destinations│
+│ [Captain 24px]  Yield Galaxy           [Galaxy] [List]        16 destinations│
 └──────────────────────────────────────────────────────────────────────────┘
 ```
 
 Contents:
 - Captain avatar (24px) — brand identity, always present
-- "SolScout" — product name, no tagline
+- "Yield Galaxy" — product name, no tagline
 - Galaxy / List toggle — persistent navigation, never hidden
 - Destination count — "16 destinations" — minimal status
 
@@ -366,7 +366,7 @@ Full 3-column layout. All panels visible. Galaxy at full scale.
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────┐
-│ [🐱24] SolScout                    [Galaxy] [List]        16 destinations│
+│ [🐱24] Yield Galaxy                    [Galaxy] [List]        16 destinations│
 ├──────────┬───────────────────────────────────────────────────┬───────────┤
 │          │                                                   │           │
 │ [🐱80px] │    ◉ USX        ◉ eUSX                          │BEST ROUTES│
@@ -392,7 +392,7 @@ Full 3-column layout. All panels visible. Galaxy at full scale.
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────┐
-│ [🐱24] SolScout                    [Galaxy] [List]        16 destinations│
+│ [🐱24] Yield Galaxy                    [Galaxy] [List]        16 destinations│
 ├──────────────────────────────────────────────────────────────────────────┤
 │                                                                          │
 │  16 opportunities    $74.2M TVL    26.3% Avg APY    12P · 3M             │
@@ -413,7 +413,7 @@ Full 3-column layout. All panels visible. Galaxy at full scale.
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────┐
-│ [🐱24] SolScout                    [Galaxy] [List]        16 destinations│
+│ [🐱24] Yield Galaxy                    [Galaxy] [List]        16 destinations│
 ├──────────┬────────────────────────────────────┬─────────────────────────┤
 │          │                                    │ USX                  ✕  │
 │ LEFT     │        GALAXY (dimmed)             │ Kamino · Lending        │
@@ -472,6 +472,6 @@ At 140px, "CAPTAIN WHISKERS" wraps to two lines. Galaxy overview stats touch the
 
 ---
 
-**This blueprint is the permanent design reference for SolScout v2.**
+**This blueprint is the permanent design reference for Yield Galaxy v2.**
 
 **Awaiting approval to begin implementation.**

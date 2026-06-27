@@ -1,4 +1,4 @@
-# SolScout — Screen Composition (Source of Truth)
+# Yield Galaxy — Screen Composition (Source of Truth)
 
 **Status:** Permanent. World coordinates derive FROM this document, not the reverse.
 

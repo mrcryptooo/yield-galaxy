@@ -1,4 +1,4 @@
-# SolScout — Final Composition Document
+# Yield Galaxy — Final Composition Document
 
 **Revision:** v3 (final)
 **Mindset:** Game menu, not dashboard. World, not page.
@@ -31,7 +31,7 @@ In a dashboard, the content lives INSIDE the UI.
 In a world, the UI lives INSIDE the content.
 ```
 
-SolScout is a world.
+Yield Galaxy is a world.
 
 ---
 
@@ -136,7 +136,7 @@ These appear only when requested and disappear when dismissed.
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────┐
-│░░░ SolScout ░░░░░░░░░░░░░░░░ [Galaxy│List] ░░░░░░░░░░░░░░░░░░░░░░ 16 ░│
+│░░░ Yield Galaxy ░░░░░░░░░░░░░░░░ [Galaxy│List] ░░░░░░░░░░░░░░░░░░░░░░ 16 ░│
 │                                                                          │
 │                                                                          │
 │                          ◉ eUSX                                          │
@@ -281,7 +281,7 @@ Nearly invisible. The user should forget it exists.
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────┐
-│  SolScout                         [Galaxy] [List]                    16  │
+│  Yield Galaxy                         [Galaxy] [List]                    16  │
 └──────────────────────────────────────────────────────────────────────────┘
 
 Height: 44px
@@ -290,7 +290,7 @@ Text: 12px, #8B8591
 Position: fixed, top: 0
 ```
 
-No logo icon. Just the word "SolScout" in muted text. The galaxy/list toggle as two small text buttons. The destination count as a number. Nothing else.
+No logo icon. Just the word "Yield Galaxy" in muted text. The galaxy/list toggle as two small text buttons. The destination count as a number. Nothing else.
 
 **Why no Captain avatar in the header:** The Captain is a 200px character in the viewport. Duplicating a 24px avatar in the header is redundant and reduces the Captain's impact.
 

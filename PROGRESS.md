@@ -1,9 +1,9 @@
-# SolScout — Progress
+# Yield Galaxy — Progress
 
 ## Current Phase: Pre-implementation
 
 ### Completed
-- [x] Project name selected (SolScout)
+- [x] Project name selected (Yield Galaxy)
 - [x] Architecture document written
 - [x] Folder structure defined
 - [x] Data flow designed

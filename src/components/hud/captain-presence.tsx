@@ -63,7 +63,7 @@ export function CaptainPresence({ destinationCount }: { destinationCount?: numbe
     if (captainSpeech.tone === 'cautious') stateLabel = 'ALERT';
     else if (captainSpeech.tone === 'confident') stateLabel = 'ANALYSIS';
   } else {
-    speech = `Exploring Solstice Galaxy. ${destinationCount ?? 16} destinations detected.`;
+    speech = `Exploring Yield Galaxy. ${destinationCount ?? 16} destinations detected.`;
   }
 
   const captainImage = getCaptainImage(

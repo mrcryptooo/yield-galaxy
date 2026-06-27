@@ -1,4 +1,4 @@
-# SolScout — Viewport Composition Rules
+# Yield Galaxy — Viewport Composition Rules
 
 **Status:** Permanent. Do not override.
 

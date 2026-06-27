@@ -1,4 +1,4 @@
-# SolScout — Roadmap
+# Yield Galaxy — Roadmap
 
 ## v0.1 — Foundation (Current)
 - Data pipeline (DefiLlama → Supabase)

@@ -153,7 +153,7 @@ export function speechForIdle(poolCount: number, topInsight: Insight | null): Ca
     };
   }
   return {
-    text: `Exploring Solstice Galaxy. ${poolCount} destinations detected.`,
+    text: `Exploring Yield Galaxy. ${poolCount} destinations detected.`,
     tone: 'neutral',
     suggestedState: 'idle',
   };

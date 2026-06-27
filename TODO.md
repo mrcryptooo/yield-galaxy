@@ -1,4 +1,4 @@
-# SolScout — TODO
+# Yield Galaxy — TODO
 
 ## Phase 1: Foundation
 - [ ] Create Next.js project

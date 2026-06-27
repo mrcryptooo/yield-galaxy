@@ -1,6 +1,6 @@
-# SolScout — Architecture Document
+# Yield Galaxy — Architecture Document
 
-**Project:** SolScout — The Solstice Galaxy Explorer
+**Project:** Yield Galaxy — The Solstice Galaxy Explorer
 **Date:** 2026-06-24
 **Status:** Pre-implementation
 
@@ -8,7 +8,7 @@
 
 ## 1. Project Overview
 
-SolScout is an immersive DeFi intelligence platform for the Solstice ecosystem. Users explore yield opportunities as celestial bodies in a 3D galaxy. Captain Whiskers (astronaut cat) serves as AI navigator. Every data point comes from real blockchain sources.
+Yield Galaxy is an immersive DeFi intelligence platform for the Solstice ecosystem. Users explore yield opportunities as celestial bodies in a 3D galaxy. Captain Whiskers (astronaut cat) serves as AI navigator. Every data point comes from real blockchain sources.
 
 ---
 

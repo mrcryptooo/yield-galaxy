@@ -1,4 +1,4 @@
-# PROJECT CHECKPOINT — SolScout
+# PROJECT CHECKPOINT — Yield Galaxy
 
 **Date:** 2026-06-25
 **Commit:** c4f9acf
