@@ -26,17 +26,25 @@ export function buildPlanetData(opportunities: Opportunity[]): Record<string, Pl
     const bestApy = Math.max(...pools.map(o => o.total_apy));
     const uniqueProtocols = new Set(pools.map(o => SOURCE_DISPLAY_NAMES[o.source_id] ?? o.source_id));
 
-    const protocols: Protocol[] = pools.slice(0, 6).map((o) => ({
-      id: o.id,
-      name: SOURCE_DISPLAY_NAMES[o.source_id] ?? o.source?.name ?? o.source_id,
-      apy: o.total_apy,
-      tvl: formatTvl(o.tvl),
-      risk: o.risk_grade,
-      type: o.strategy.charAt(0).toUpperCase() + o.strategy.slice(1),
-      depositApy: o.base_apy,
-      borrowApy: o.reward_apy,
-      updated: timeAgo(o.updated_at),
-    }));
+    const protocols: Protocol[] = pools.slice(0, 6).map((o) => {
+      const protocolName = (SOURCE_DISPLAY_NAMES[o.source_id] ?? o.source?.name ?? o.source_id).toLowerCase();
+      const nonSolsticeTokens = o.symbol.split('-')
+        .map(t => t.trim().toLowerCase())
+        .filter(t => !['usx', 'eusx', 'slx', 'stslx'].includes(t));
+      const suffix = nonSolsticeTokens.length > 0 ? '-' + nonSolsticeTokens.join('-') : '';
+      const slug = body.toLowerCase() + '-' + protocolName + suffix;
+      return {
+        id: slug,
+        name: SOURCE_DISPLAY_NAMES[o.source_id] ?? o.source?.name ?? o.source_id,
+        apy: o.total_apy,
+        tvl: formatTvl(o.tvl),
+        risk: o.risk_grade,
+        type: o.strategy.charAt(0).toUpperCase() + o.strategy.slice(1),
+        depositApy: o.base_apy,
+        borrowApy: o.reward_apy,
+        updated: timeAgo(o.updated_at),
+      };
+    });
 
     planets[body] = {
       name: body,
