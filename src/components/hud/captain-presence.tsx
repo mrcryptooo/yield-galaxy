@@ -4,13 +4,17 @@ import { useRef, useEffect } from 'react';
 import Image from 'next/image';
 import { useGalaxyStore } from '@/stores/galaxy-store';
 import { CAPTAIN_LINES } from '@/components/galaxy/focus-cameras';
+import { CAPTAIN_PROTOCOL_LINES } from '@/components/galaxy/planet-data';
 
 export function CaptainPresence() {
   const containerRef = useRef<HTMLDivElement>(null);
   const frameRef = useRef(0);
   const focused = useGalaxyStore((s) => s.focused);
+  const selectedProtocol = useGalaxyStore((s) => s.selectedProtocol);
 
-  const speech = focused
+  const speech = selectedProtocol
+    ? CAPTAIN_PROTOCOL_LINES[selectedProtocol] ?? 'Scanning this protocol...'
+    : focused
     ? CAPTAIN_LINES[focused] ?? 'Interesting choice, Explorer.'
     : 'Exploring Solstice Galaxy. 16 destinations detected.';
 

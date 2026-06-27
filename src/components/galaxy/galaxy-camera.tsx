@@ -48,19 +48,31 @@ export function GalaxyCamera() {
     progress.current = 0;
   }, [focused, camera]);
 
-  // ESC to exit
+  const selectedProtocol = useGalaxyStore((s) => s.selectedProtocol);
+  const setSelectedProtocol = useGalaxyStore((s) => s.setSelectedProtocol);
+
+  // ESC: protocol → planet → galaxy (layered exit)
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && focused) setFocused(null);
+      if (e.key === 'Escape') {
+        if (selectedProtocol) {
+          setSelectedProtocol(null);
+        } else if (focused) {
+          setFocused(null);
+        }
+      }
     };
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);
-  }, [focused, setFocused]);
+  }, [focused, selectedProtocol, setFocused, setSelectedProtocol]);
 
-  // Click empty space to exit
+  // Click empty space: protocol → planet → galaxy
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
-      if (focused && e.target === gl.domElement) {
+      if (e.target !== gl.domElement) return;
+      if (selectedProtocol) {
+        setSelectedProtocol(null);
+      } else if (focused) {
         setFocused(null);
       }
     };

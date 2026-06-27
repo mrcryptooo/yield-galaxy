@@ -14,6 +14,7 @@ import { Moons } from './moons';
 import { WorldEvents } from './world-events';
 import { Atmosphere } from './atmosphere';
 import { WorldLife } from './world-life';
+import { PlanetExperience } from './planet-experience';
 import { CAMERA } from './positions';
 
 function GalaxyContent() {
@@ -31,6 +32,7 @@ function GalaxyContent() {
       <Moons />
       <Atmosphere />
       <WorldEvents />
+      <PlanetExperience />
 
       <GalaxyCamera />
 
