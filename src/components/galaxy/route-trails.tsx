@@ -5,28 +5,36 @@ import { useFrame } from '@react-three/fiber';
 import { Html } from '@react-three/drei';
 import * as THREE from 'three';
 import { useJourneyStore } from '@/stores/journey-store';
+import { useExecutionStore } from '@/stores/execution-store';
 
 const TRAIL_COLOR = new THREE.Color('#F6A04D');
+// Execution state colors used inline as hex strings
 const PARTICLE_COUNT = 32;
 
 export function RouteTrails() {
   const activeRoute = useJourneyStore((s) => s.activeRoute);
   const completed = useJourneyStore((s) => s.completed);
+  const executionPlan = useExecutionStore((s) => s.plan);
   if (!activeRoute) return null;
 
   return (
     <group>
-      {activeRoute.nodes.map((node, i) => (
-        <RouteNodeMarker
-          key={node.id}
-          position={node.position}
-          label={node.label}
-          index={i}
-          currentStep={activeRoute.currentStep}
-          total={activeRoute.nodes.length}
-          completed={completed}
-        />
-      ))}
+      {activeRoute.nodes.map((node, i) => {
+        const execStep = executionPlan?.steps[i];
+        const execStatus = execStep?.status ?? null;
+        return (
+          <RouteNodeMarker
+            key={node.id}
+            position={node.position}
+            label={node.label}
+            index={i}
+            currentStep={activeRoute.currentStep}
+            total={activeRoute.nodes.length}
+            completed={completed}
+            execStatus={execStatus}
+          />
+        );
+      })}
 
       {activeRoute.nodes.map((node, i) => {
         if (i === 0) return null;
@@ -50,13 +58,14 @@ export function RouteTrails() {
   );
 }
 
-function RouteNodeMarker({ position, label, index, currentStep, total, completed }: {
+function RouteNodeMarker({ position, label, index, currentStep, total, completed, execStatus }: {
   position: [number, number, number];
   label: string;
   index: number;
   currentStep: number;
   total: number;
   completed: boolean;
+  execStatus: string | null;
 }) {
   const meshRef = useRef<THREE.Mesh>(null);
   const glowRef = useRef<THREE.Mesh>(null);
@@ -113,7 +122,7 @@ function RouteNodeMarker({ position, label, index, currentStep, total, completed
       <mesh ref={meshRef}>
         <octahedronGeometry args={[0.18, 0]} />
         <meshBasicMaterial
-          color={isCurrent ? '#F6A04D' : (isCompleted ? '#F7B36C' : '#F5F0EB')}
+          color={execStatus === 'confirmed' ? '#4ade80' : execStatus === 'failed' ? '#ef4444' : isCurrent ? '#F6A04D' : (isCompleted ? '#F7B36C' : '#F5F0EB')}
           transparent
           opacity={isFuture ? 0.15 : (isCompleted ? 0.6 : 0.9)}
         />

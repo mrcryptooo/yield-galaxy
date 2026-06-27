@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { useGalaxyStore } from '@/stores/galaxy-store';
 import { useJourneyStore } from '@/stores/journey-store';
 import { useCaptainStore } from '@/stores/captain-store';
+import { useExecutionStore } from '@/stores/execution-store';
 import { CAPTAIN_LINES } from '@/components/galaxy/focus-cameras';
 import { CAPTAIN_PROTOCOL_LINES } from '@/components/galaxy/planet-data';
 import { CAPTAIN_JOURNEY_LINES } from '@/lib/route-templates';
@@ -32,12 +33,17 @@ export function CaptainPresence({ destinationCount }: { destinationCount?: numbe
   const captainState = useJourneyStore((s) => s.captainState);
   const captainSpeech = useCaptainStore((s) => s.currentSpeech);
   const briefing = useCaptainStore((s) => s.briefing);
+  const executionSpeech = useExecutionStore((s) => s.executionSpeech);
+  const executionPlan = useExecutionStore((s) => s.plan);
 
   // Determine speech: captain intelligence → journey lines → planet/protocol → idle
   let speech: string;
   let stateLabel: string = '';
 
-  if (activeRoute && completed) {
+  if (executionSpeech && executionPlan) {
+    speech = executionSpeech;
+    stateLabel = executionPlan.status === 'executing' ? 'EXECUTING' : executionPlan.status === 'completed' ? 'CONFIRMED' : executionPlan.status === 'failed' ? 'FAILED' : 'READY';
+  } else if (activeRoute && completed) {
     speech = briefing?.idleSpeech
       ? `Route complete. ${briefing.analysis?.headline ?? 'Position established.'}`
       : 'Mission accomplished.';
