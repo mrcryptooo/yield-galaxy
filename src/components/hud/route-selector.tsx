@@ -3,9 +3,11 @@
 import { useCallback } from 'react';
 import { useJourneyStore } from '@/stores/journey-store';
 import { useOptimizerStore } from '@/stores/optimizer-store';
+import { useCaptainStore } from '@/stores/captain-store';
 import { optimize } from '@/lib/optimizer/optimizer';
 import { buildGraph } from '@/lib/optimizer/opportunity-graph';
 import { optimizedRouteToTemplate, generateCaptainLines } from '@/lib/dynamic-route-builder';
+import { buildBriefing } from '@/lib/captain/summary';
 import { formatApy } from '@/lib/format';
 import type { Opportunity } from '@/lib/types';
 import type { OptimizedRoute } from '@/lib/optimizer/optimizer';
@@ -26,12 +28,16 @@ export function RouteSelector({ opportunities }: { opportunities?: Opportunity[]
   const setRiskPreference = useOptimizerStore((s) => s.setRiskPreference);
   const setResult = useOptimizerStore((s) => s.setResult);
 
+  const setBriefing = useCaptainStore((s) => s.setBriefing);
+
   const runOptimizer = useCallback(() => {
     if (!opportunities || opportunities.length === 0) return;
     const g = buildGraph(opportunities);
     const res = optimize(opportunities, 'USDC', 1000, riskPreference);
     setResult(res, g);
-  }, [opportunities, riskPreference, setResult]);
+    const brief = buildBriefing(opportunities, res);
+    setBriefing(brief);
+  }, [opportunities, riskPreference, setResult, setBriefing]);
 
   const launchRoute = useCallback((route: OptimizedRoute) => {
     if (!graph) return;

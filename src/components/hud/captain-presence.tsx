@@ -4,15 +4,10 @@ import { useRef, useEffect } from 'react';
 import Image from 'next/image';
 import { useGalaxyStore } from '@/stores/galaxy-store';
 import { useJourneyStore } from '@/stores/journey-store';
+import { useCaptainStore } from '@/stores/captain-store';
 import { CAPTAIN_LINES } from '@/components/galaxy/focus-cameras';
 import { CAPTAIN_PROTOCOL_LINES } from '@/components/galaxy/planet-data';
 import { CAPTAIN_JOURNEY_LINES } from '@/lib/route-templates';
-
-const CAPTAIN_COMPLETION_LINES = [
-  'Mission accomplished. Well flown, Explorer.',
-  'Route complete. The yields are yours.',
-  'Journey finished. The galaxy remembers.',
-];
 
 function getCaptainImage(captainState: string, focused: string | null, activeRoute: boolean): string {
   if (activeRoute) {
@@ -35,34 +30,55 @@ export function CaptainPresence({ destinationCount }: { destinationCount?: numbe
   const activeRoute = useJourneyStore((s) => s.activeRoute);
   const completed = useJourneyStore((s) => s.completed);
   const captainState = useJourneyStore((s) => s.captainState);
+  const captainSpeech = useCaptainStore((s) => s.currentSpeech);
+  const briefing = useCaptainStore((s) => s.briefing);
 
+  // Determine speech: captain intelligence → journey lines → planet/protocol → idle
   let speech: string;
+  let stateLabel: string = '';
+
   if (activeRoute && completed) {
-    const idx = activeRoute.template.name.length % CAPTAIN_COMPLETION_LINES.length;
-    speech = CAPTAIN_COMPLETION_LINES[idx];
+    speech = briefing?.idleSpeech
+      ? `Route complete. ${briefing.analysis?.headline ?? 'Position established.'}`
+      : 'Mission accomplished.';
+    stateLabel = 'SUCCESS';
   } else if (activeRoute) {
     const node = activeRoute.nodes[activeRoute.currentStep];
     const dynamicLines = activeRoute.template._captainLines;
     const staticLines = CAPTAIN_JOURNEY_LINES[activeRoute.template.id];
     speech = dynamicLines?.[node.action] ?? staticLines?.[node.action] ?? `Navigating to ${node.label}.`;
+    stateLabel = captainState === 'talking' ? 'NARRATING' : captainState === 'thinking' ? 'PLOTTING' : 'READY';
   } else if (selectedProtocol) {
     speech = CAPTAIN_PROTOCOL_LINES[selectedProtocol] ?? 'Scanning this protocol...';
   } else if (focused) {
     speech = CAPTAIN_LINES[focused] ?? 'Interesting choice, Explorer.';
+  } else if (captainSpeech) {
+    speech = captainSpeech.text;
+    if (captainSpeech.tone === 'cautious') stateLabel = 'ALERT';
+    else if (captainSpeech.tone === 'confident') stateLabel = 'ANALYSIS';
   } else {
     speech = `Exploring Solstice Galaxy. ${destinationCount ?? 16} destinations detected.`;
   }
 
-  const captainImage = getCaptainImage(captainState, focused, !!activeRoute);
+  const captainImage = getCaptainImage(
+    captainSpeech?.suggestedState ?? captainState,
+    focused,
+    !!activeRoute,
+  );
 
   const isJourneyActive = !!activeRoute;
+  const hasBriefing = !!captainSpeech && !isJourneyActive && !focused && !selectedProtocol;
   const speechColor = completed
     ? 'rgba(246,160,77,0.6)'
     : isJourneyActive
       ? 'rgba(245,240,235,0.6)'
-      : focused
-        ? 'rgba(245,240,235,0.55)'
-        : 'rgba(245,240,235,0.4)';
+      : captainSpeech?.tone === 'alert'
+        ? 'rgba(246,160,77,0.5)'
+        : captainSpeech?.tone === 'confident'
+          ? 'rgba(245,240,235,0.55)'
+          : focused
+            ? 'rgba(245,240,235,0.55)'
+            : 'rgba(245,240,235,0.4)';
 
   useEffect(() => {
     let t = 0;
@@ -86,7 +102,7 @@ export function CaptainPresence({ destinationCount }: { destinationCount?: numbe
       zIndex: 10, pointerEvents: 'none',
     }}>
       {/* State indicator */}
-      {isJourneyActive && (
+      {(isJourneyActive || hasBriefing) && stateLabel && (
         <div style={{
           marginBottom: '4px', marginLeft: '32px',
           fontSize: '7px',
@@ -94,12 +110,14 @@ export function CaptainPresence({ destinationCount }: { destinationCount?: numbe
           letterSpacing: '0.15em',
           color: completed
             ? 'rgba(246,160,77,0.4)'
-            : captainState === 'talking'
-              ? 'rgba(246,160,77,0.3)'
-              : 'rgba(245,240,235,0.15)',
+            : stateLabel === 'ALERT'
+              ? 'rgba(246,160,77,0.4)'
+              : captainState === 'talking'
+                ? 'rgba(246,160,77,0.3)'
+                : 'rgba(245,240,235,0.15)',
           animation: 'fadeIn 0.4s ease-out',
         }}>
-          {completed ? 'SUCCESS' : captainState === 'talking' ? 'NARRATING' : captainState === 'thinking' ? 'PLOTTING' : 'READY'}
+          {stateLabel}
         </div>
       )}
 
