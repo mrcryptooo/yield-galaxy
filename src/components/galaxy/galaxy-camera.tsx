@@ -22,8 +22,9 @@ export function GalaxyCamera() {
   const focused = useGalaxyStore((s) => s.focused);
   const setFocused = useGalaxyStore((s) => s.setFocused);
 
-  const phase = useRef<'opening' | 'idle' | 'flying'>('opening');
+  const phase = useRef<'opening' | 'idle' | 'flying' | 'journey-orbit'>('opening');
   const progress = useRef(0);
+  const journeyOrbitTime = useRef(0);
   const flyFrom = useRef({ pos: new THREE.Vector3(), target: new THREE.Vector3() });
   const flyTo = useRef({ pos: new THREE.Vector3(), target: new THREE.Vector3() });
   const drift = useRef({ x: 0, y: 0 });
@@ -143,12 +144,31 @@ export function GalaxyCamera() {
 
     // Flying (focus or return)
     if (phase.current === 'flying') {
-      // ~1.8 second duration (delta * 0.55 ≈ 1/1.8)
-      progress.current = Math.min(1, progress.current + delta * 0.55);
+      const speed = activeRoute ? 0.4 : 0.55;
+      progress.current = Math.min(1, progress.current + delta * speed);
       const e = smootherstep(progress.current);
       camera.position.lerpVectors(flyFrom.current.pos, flyTo.current.pos, e);
       if (ctrl) ctrl.target.lerpVectors(flyFrom.current.target, flyTo.current.target, e);
-      if (progress.current >= 1) phase.current = 'idle';
+      if (progress.current >= 1) {
+        if (activeRoute) {
+          phase.current = 'journey-orbit';
+          journeyOrbitTime.current = 0;
+        } else {
+          phase.current = 'idle';
+        }
+      }
+      return;
+    }
+
+    // Orbit micro-motion at journey node
+    if (phase.current === 'journey-orbit') {
+      journeyOrbitTime.current += delta;
+      const orbitRadius = 0.3;
+      const orbitSpeed = 0.4;
+      const t = journeyOrbitTime.current * orbitSpeed;
+      camera.position.x = flyTo.current.pos.x + Math.sin(t) * orbitRadius;
+      camera.position.y = flyTo.current.pos.y + Math.cos(t * 0.7) * orbitRadius * 0.3;
+      camera.position.z = flyTo.current.pos.z + Math.cos(t) * orbitRadius * 0.5;
       return;
     }
 
@@ -164,8 +184,8 @@ export function GalaxyCamera() {
       ref={controlsRef}
       target={FINAL_TARGET}
       enablePan={false}
-      enableZoom={!focused}
-      enableRotate={!focused}
+      enableZoom={!focused && !activeRoute}
+      enableRotate={!focused && !activeRoute}
       minDistance={10}
       maxDistance={60}
       dampingFactor={0.015}

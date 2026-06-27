@@ -1,5 +1,7 @@
 'use client';
 
+import { useJourneyStore } from '@/stores/journey-store';
+
 export interface TelemetryReading {
   label: string;
   value: string;
@@ -7,6 +9,9 @@ export interface TelemetryReading {
 }
 
 export function TelemetryStrip({ readings }: { readings?: TelemetryReading[] }) {
+  const activeRoute = useJourneyStore((s) => s.activeRoute);
+  if (activeRoute) return null;
+
   const items = readings ?? [
     { label: 'USX', value: '77 · A' },
     { label: 'SLX-SOL', value: '405%', accent: true },
