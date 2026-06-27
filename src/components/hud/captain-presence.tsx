@@ -10,17 +10,19 @@ import { CAPTAIN_LINES } from '@/components/galaxy/focus-cameras';
 import { CAPTAIN_PROTOCOL_LINES } from '@/components/galaxy/planet-data';
 import { CAPTAIN_JOURNEY_LINES } from '@/lib/route-templates';
 
+const CAPTAIN_IMAGES: Record<string, string> = {
+  idle: '/assets/captain/captain-idle.webp',
+  thinking: '/assets/captain/captain-holographic.webp',
+  talking: '/assets/captain/captain-speaking.webp',
+  success: '/assets/captain/captain-success.webp',
+  alert: '/assets/captain/captain-alert.webp',
+  default: '/assets/captain/captain-full-body.webp',
+};
+
 function getCaptainImage(captainState: string, focused: string | null, activeRoute: boolean): string {
-  if (activeRoute) {
-    switch (captainState) {
-      case 'thinking': return '/assets/captain/captain-holographic.webp';
-      case 'talking': return '/assets/captain/captain-speaking.webp';
-      case 'success': return '/assets/captain/captain-full-body.webp';
-      case 'alert': return '/assets/captain/captain-speaking.webp';
-      default: return '/assets/captain/captain-full-body.webp';
-    }
-  }
-  return focused ? '/assets/captain/captain-speaking.webp' : '/assets/captain/captain-full-body.webp';
+  if (activeRoute) return CAPTAIN_IMAGES[captainState] ?? CAPTAIN_IMAGES.default;
+  if (focused) return CAPTAIN_IMAGES.talking;
+  return CAPTAIN_IMAGES.default;
 }
 
 export function CaptainPresence({ destinationCount }: { destinationCount?: number }) {
@@ -36,7 +38,6 @@ export function CaptainPresence({ destinationCount }: { destinationCount?: numbe
   const executionSpeech = useExecutionStore((s) => s.executionSpeech);
   const executionPlan = useExecutionStore((s) => s.plan);
 
-  // Determine speech: captain intelligence → journey lines → planet/protocol → idle
   let speech: string;
   let stateLabel: string = '';
 
@@ -75,25 +76,25 @@ export function CaptainPresence({ destinationCount }: { destinationCount?: numbe
   const isJourneyActive = !!activeRoute;
   const hasBriefing = !!captainSpeech && !isJourneyActive && !focused && !selectedProtocol;
   const speechColor = completed
-    ? 'rgba(246,160,77,0.6)'
+    ? 'rgba(246,160,77,0.7)'
     : isJourneyActive
-      ? 'rgba(245,240,235,0.6)'
+      ? 'rgba(245,240,235,0.65)'
       : captainSpeech?.tone === 'alert'
-        ? 'rgba(246,160,77,0.5)'
+        ? 'rgba(246,160,77,0.6)'
         : captainSpeech?.tone === 'confident'
-          ? 'rgba(245,240,235,0.55)'
+          ? 'rgba(245,240,235,0.6)'
           : focused
-            ? 'rgba(245,240,235,0.55)'
-            : 'rgba(245,240,235,0.4)';
+            ? 'rgba(245,240,235,0.6)'
+            : 'rgba(245,240,235,0.45)';
 
   useEffect(() => {
     let t = 0;
     const animate = () => {
       t += 0.008;
       if (containerRef.current) {
-        const breathe = 1 + Math.sin(t * 0.4) * 0.008;
-        const floatY = Math.sin(t * 0.25) * 1.5 + Math.sin(t * 0.6) * 0.5;
-        const swayX = Math.sin(t * 0.15) * 0.3;
+        const breathe = 1 + Math.sin(t * 0.35) * 0.01;
+        const floatY = Math.sin(t * 0.2) * 2.0 + Math.sin(t * 0.55) * 0.8;
+        const swayX = Math.sin(t * 0.12) * 0.5;
         containerRef.current.style.transform = `translate(${swayX}px, ${floatY}px) scale(${breathe})`;
       }
       frameRef.current = requestAnimationFrame(animate);
@@ -104,23 +105,23 @@ export function CaptainPresence({ destinationCount }: { destinationCount?: numbe
 
   return (
     <div style={{
-      position: 'fixed', bottom: '44px', left: '8px',
+      position: 'fixed', bottom: '32px', left: '8px',
       zIndex: 10, pointerEvents: 'none',
     }}>
       {/* State indicator */}
       {(isJourneyActive || hasBriefing) && stateLabel && (
         <div style={{
-          marginBottom: '4px', marginLeft: '32px',
-          fontSize: '7px',
+          marginBottom: '6px', marginLeft: '40px',
+          fontSize: '8px',
           fontFamily: 'var(--font-geist-mono), monospace',
-          letterSpacing: '0.15em',
+          letterSpacing: '0.14em',
           color: completed
-            ? 'rgba(246,160,77,0.4)'
+            ? 'rgba(246,160,77,0.5)'
             : stateLabel === 'ALERT'
-              ? 'rgba(246,160,77,0.4)'
+              ? 'rgba(246,160,77,0.45)'
               : captainState === 'talking'
-                ? 'rgba(246,160,77,0.3)'
-                : 'rgba(245,240,235,0.15)',
+                ? 'rgba(246,160,77,0.35)'
+                : 'rgba(245,240,235,0.18)',
           animation: 'fadeIn 0.4s ease-out',
         }}>
           {stateLabel}
@@ -131,13 +132,13 @@ export function CaptainPresence({ destinationCount }: { destinationCount?: numbe
       <div
         key={speech}
         style={{
-          marginBottom: '8px', marginLeft: '32px', maxWidth: '190px',
-          fontSize: '10px', lineHeight: '1.65', fontWeight: 300,
+          marginBottom: '10px', marginLeft: '40px', maxWidth: '210px',
+          fontSize: '12px', lineHeight: '1.7', fontWeight: 300,
           letterSpacing: '0.02em',
           color: speechColor,
           textShadow: completed
-            ? '0 0 15px rgba(246,160,77,0.12)'
-            : '0 0 15px rgba(246,160,77,0.06)',
+            ? '0 0 18px rgba(246,160,77,0.15)'
+            : '0 0 12px rgba(246,160,77,0.06)',
           animation: 'fadeIn 0.6s ease-out',
         }}
       >
@@ -146,26 +147,26 @@ export function CaptainPresence({ destinationCount }: { destinationCount?: numbe
 
       <div ref={containerRef} style={{ position: 'relative' }}>
         <div style={{
-          position: 'absolute', top: '-20px', right: '-30px',
-          width: '120px', height: '120px', borderRadius: '50%',
-          background: `radial-gradient(circle at 30% 40%, rgba(246,160,77,${completed ? 0.12 : 0.07}) 0%, transparent 60%)`,
+          position: 'absolute', top: '-25px', right: '-35px',
+          width: '150px', height: '150px', borderRadius: '50%',
+          background: `radial-gradient(circle at 30% 40%, rgba(246,160,77,${completed ? 0.14 : 0.08}) 0%, transparent 60%)`,
           transition: 'background 1s ease',
         }} />
         <div style={{
-          position: 'absolute', bottom: '-15px', left: '20px',
-          width: '100px', height: '40px', borderRadius: '50%',
-          background: 'radial-gradient(ellipse, rgba(246,160,77,0.04) 0%, transparent 70%)',
+          position: 'absolute', bottom: '-20px', left: '25px',
+          width: '120px', height: '50px', borderRadius: '50%',
+          background: 'radial-gradient(ellipse, rgba(246,160,77,0.05) 0%, transparent 70%)',
         }} />
         <Image
           src={captainImage}
           alt="Captain Whiskers"
-          width={400} height={400}
+          width={500} height={500}
           style={{
-            width: '168px', height: '168px', objectFit: 'contain',
-            position: 'relative', opacity: completed ? 1 : 0.9,
+            width: '240px', height: '240px', objectFit: 'contain',
+            position: 'relative', opacity: completed ? 1 : 0.92,
             filter: completed
-              ? 'drop-shadow(0 2px 24px rgba(246,160,77,0.15)) drop-shadow(2px 0 12px rgba(246,160,77,0.08))'
-              : 'drop-shadow(0 2px 20px rgba(246,160,77,0.08)) drop-shadow(2px 0 10px rgba(246,160,77,0.04))',
+              ? 'drop-shadow(0 2px 28px rgba(246,160,77,0.18)) drop-shadow(2px 0 14px rgba(246,160,77,0.1))'
+              : 'drop-shadow(0 2px 24px rgba(246,160,77,0.1)) drop-shadow(2px 0 12px rgba(246,160,77,0.05))',
             transition: 'filter 1s ease, opacity 1s ease',
           }}
           priority

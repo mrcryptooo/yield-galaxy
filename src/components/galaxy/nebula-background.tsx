@@ -10,11 +10,9 @@ export function NebulaBackground() {
   try {
     const texture = useTexture('/assets/backgrounds/nebula-panorama.webp');
     texture.mapping = EquirectangularReflectionMapping;
-    // Rotate to show the most atmospheric section — dust lanes and color variation
     texture.rotation = Math.PI * 0.8;
     scene.background = texture;
-    // Enough to see cloud structure, not enough to compete with the sun
-    scene.backgroundIntensity = 0.45;
+    scene.backgroundIntensity = 0.55;
   } catch {
     // Fallback: solid deep space
   }

@@ -9,6 +9,8 @@ import { CommsConsole } from '@/components/hud/comms-console';
 import { TelemetryStrip } from '@/components/hud/telemetry-strip';
 import { JourneyHud } from '@/components/hud/journey-hud';
 import { RouteSelector } from '@/components/hud/route-selector';
+import { Branding } from '@/components/hud/branding';
+import { ListView } from '@/components/list/list-view';
 import { useYields } from '@/hooks/use-yields';
 import { buildPlanetData } from '@/lib/build-planet-data';
 import { formatApy } from '@/lib/format';
@@ -74,6 +76,10 @@ function HomeContent() {
       >
         <GalaxyScene planetData={planetData} />
       </Suspense>
+
+      <ListView opportunities={opportunities} />
+
+      <Branding />
 
       <VisorLayer>
         <NavBar />

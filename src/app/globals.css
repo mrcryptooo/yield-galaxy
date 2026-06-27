@@ -3,10 +3,10 @@
 :root {
   --bg: #0A0E1A;
   --solar: #F6A04D;
-  --hud-text: rgba(245, 240, 235, 0.35);
-  --hud-dim: rgba(245, 240, 235, 0.18);
-  --hud-accent: rgba(246, 160, 77, 0.4);
-  --hud-glow: rgba(246, 160, 77, 0.06);
+  --hud-text: rgba(245, 240, 235, 0.45);
+  --hud-dim: rgba(245, 240, 235, 0.22);
+  --hud-accent: rgba(246, 160, 77, 0.5);
+  --hud-glow: rgba(246, 160, 77, 0.08);
 }
 
 body {
@@ -21,37 +21,36 @@ canvas {
   height: 100% !important;
 }
 
-/* HUD typography — spacecraft instrumentation */
 .hud-label {
   font-family: var(--font-geist-mono), 'Courier New', monospace;
-  font-size: 8px;
-  font-weight: 400;
-  letter-spacing: 0.18em;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--hud-accent);
 }
 
 .hud-value {
   font-family: var(--font-geist-mono), 'Courier New', monospace;
-  font-size: 10px;
-  font-weight: 300;
-  letter-spacing: 0.06em;
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: 0.04em;
   color: var(--hud-text);
 }
 
 .hud-title {
   font-family: var(--font-geist-sans), system-ui, sans-serif;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 400;
-  letter-spacing: 0.04em;
-  color: rgba(245, 240, 235, 0.45);
+  letter-spacing: 0.03em;
+  color: rgba(245, 240, 235, 0.5);
 }
 
 .hud-glow {
-  text-shadow: 0 0 8px rgba(246, 160, 77, 0.15);
+  text-shadow: 0 0 10px rgba(246, 160, 77, 0.18);
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
 }

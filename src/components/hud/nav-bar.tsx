@@ -1,6 +1,11 @@
 'use client';
 
+import { useViewStore } from '@/stores/view-store';
+
 export function NavBar() {
+  const mode = useViewStore((s) => s.mode);
+  const setMode = useViewStore((s) => s.setMode);
+
   return (
     <nav
       style={{
@@ -11,29 +16,40 @@ export function NavBar() {
         display: 'flex',
         alignItems: 'center',
         gap: '24px',
-        zIndex: 10,
+        zIndex: 20,
         pointerEvents: 'none',
       }}
     >
-      {/* NAV system indicator */}
-      <span className="hud-label hud-glow" style={{ pointerEvents: 'auto', cursor: 'pointer' }}>
+      <button
+        onClick={() => setMode('galaxy')}
+        className={mode === 'galaxy' ? 'hud-label hud-glow' : 'hud-label'}
+        style={{
+          pointerEvents: 'auto', cursor: 'pointer', background: 'none', border: 'none',
+          color: mode === 'galaxy' ? 'rgba(246,160,77,0.5)' : 'rgba(245,240,235,0.15)',
+          fontSize: '10px', letterSpacing: '0.14em', fontWeight: 500,
+          transition: 'color 0.3s ease',
+        }}
+      >
         Galaxy
-      </span>
+      </button>
 
-      {/* Thin separator line */}
       <div style={{
-        width: '20px',
-        height: '1px',
+        width: '20px', height: '1px',
         background: 'linear-gradient(90deg, transparent, rgba(246,160,77,0.15), transparent)',
       }} />
 
-      <span className="hud-label" style={{
-        pointerEvents: 'auto',
-        cursor: 'pointer',
-        color: 'rgba(245,240,235,0.15)',
-      }}>
+      <button
+        onClick={() => setMode('list')}
+        className={mode === 'list' ? 'hud-label hud-glow' : 'hud-label'}
+        style={{
+          pointerEvents: 'auto', cursor: 'pointer', background: 'none', border: 'none',
+          color: mode === 'list' ? 'rgba(246,160,77,0.5)' : 'rgba(245,240,235,0.15)',
+          fontSize: '10px', letterSpacing: '0.14em', fontWeight: 500,
+          transition: 'color 0.3s ease',
+        }}
+      >
         List
-      </span>
+      </button>
     </nav>
   );
 }
