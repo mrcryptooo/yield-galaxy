@@ -7,6 +7,8 @@ import { NavBar } from '@/components/hud/nav-bar';
 import { CaptainPresence } from '@/components/hud/captain-presence';
 import { CommsConsole } from '@/components/hud/comms-console';
 import { TelemetryStrip } from '@/components/hud/telemetry-strip';
+import { JourneyHud } from '@/components/hud/journey-hud';
+import { RouteSelector } from '@/components/hud/route-selector';
 import { useYields } from '@/hooks/use-yields';
 import { buildPlanetData } from '@/lib/build-planet-data';
 import { formatApy } from '@/lib/format';
@@ -78,6 +80,8 @@ function HomeContent() {
         <CaptainPresence destinationCount={destinationCount} />
         <CommsConsole signals={commsSignals} />
         <TelemetryStrip readings={telemetryReadings} />
+        <RouteSelector />
+        <JourneyHud planetData={planetData} />
       </VisorLayer>
     </>
   );

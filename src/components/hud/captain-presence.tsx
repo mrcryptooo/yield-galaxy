@@ -3,20 +3,30 @@
 import { useRef, useEffect } from 'react';
 import Image from 'next/image';
 import { useGalaxyStore } from '@/stores/galaxy-store';
+import { useJourneyStore } from '@/stores/journey-store';
 import { CAPTAIN_LINES } from '@/components/galaxy/focus-cameras';
 import { CAPTAIN_PROTOCOL_LINES } from '@/components/galaxy/planet-data';
+import { CAPTAIN_JOURNEY_LINES } from '@/lib/route-templates';
 
 export function CaptainPresence({ destinationCount }: { destinationCount?: number }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const frameRef = useRef(0);
   const focused = useGalaxyStore((s) => s.focused);
   const selectedProtocol = useGalaxyStore((s) => s.selectedProtocol);
+  const activeRoute = useJourneyStore((s) => s.activeRoute);
 
-  const speech = selectedProtocol
-    ? CAPTAIN_PROTOCOL_LINES[selectedProtocol] ?? 'Scanning this protocol...'
-    : focused
-    ? CAPTAIN_LINES[focused] ?? 'Interesting choice, Explorer.'
-    : `Exploring Solstice Galaxy. ${destinationCount ?? 16} destinations detected.`;
+  let speech: string;
+  if (activeRoute) {
+    const node = activeRoute.nodes[activeRoute.currentStep];
+    const routeLines = CAPTAIN_JOURNEY_LINES[activeRoute.template.id];
+    speech = routeLines?.[node.action] ?? `Navigating to ${node.label}.`;
+  } else if (selectedProtocol) {
+    speech = CAPTAIN_PROTOCOL_LINES[selectedProtocol] ?? 'Scanning this protocol...';
+  } else if (focused) {
+    speech = CAPTAIN_LINES[focused] ?? 'Interesting choice, Explorer.';
+  } else {
+    speech = `Exploring Solstice Galaxy. ${destinationCount ?? 16} destinations detected.`;
+  }
 
   useEffect(() => {
     let t = 0;

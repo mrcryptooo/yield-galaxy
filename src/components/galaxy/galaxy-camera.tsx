@@ -1,12 +1,14 @@
 'use client';
 
-import { useRef, useState, useEffect } from 'react';
+import { useRef, useEffect } from 'react';
 import { useThree, useFrame } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import * as THREE from 'three';
 import { CAMERA } from './positions';
 import { FOCUS_CAMERAS } from './focus-cameras';
 import { useGalaxyStore } from '@/stores/galaxy-store';
+import { useJourneyStore } from '@/stores/journey-store';
+import { getCameraForNode } from '@/lib/route-engine';
 
 const FINAL_POS = new THREE.Vector3(...CAMERA.position);
 const FINAL_TARGET = new THREE.Vector3(...CAMERA.target);
@@ -48,14 +50,60 @@ export function GalaxyCamera() {
     progress.current = 0;
   }, [focused, camera]);
 
+  // React to journey step changes
+  const activeRoute = useJourneyStore((s) => s.activeRoute);
+  const prevJourneyStep = useRef<number>(-1);
+  const prevRouteId = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!activeRoute) {
+      if (prevRouteId.current !== null) {
+        prevRouteId.current = null;
+        prevJourneyStep.current = -1;
+        const ctrl = controlsRef.current as unknown as { target: THREE.Vector3 } | null;
+        flyFrom.current.pos.copy(camera.position);
+        flyFrom.current.target.copy(ctrl?.target ?? FINAL_TARGET);
+        flyTo.current.pos.copy(FINAL_POS);
+        flyTo.current.target.copy(FINAL_TARGET);
+        phase.current = 'flying';
+        progress.current = 0;
+      }
+      return;
+    }
+
+    const routeChanged = prevRouteId.current !== activeRoute.template.id;
+    const stepChanged = prevJourneyStep.current !== activeRoute.currentStep;
+
+    if (!routeChanged && !stepChanged) return;
+
+    prevRouteId.current = activeRoute.template.id;
+    prevJourneyStep.current = activeRoute.currentStep;
+
+    const node = activeRoute.nodes[activeRoute.currentStep];
+    if (!node) return;
+
+    const cam = getCameraForNode(node);
+    const ctrl = controlsRef.current as unknown as { target: THREE.Vector3 } | null;
+    flyFrom.current.pos.copy(camera.position);
+    flyFrom.current.target.copy(ctrl?.target ?? FINAL_TARGET);
+    flyTo.current.pos.set(...cam.position);
+    flyTo.current.target.set(...cam.target);
+    phase.current = 'flying';
+    progress.current = 0;
+  }, [activeRoute, camera]);
+
   const selectedProtocol = useGalaxyStore((s) => s.selectedProtocol);
   const setSelectedProtocol = useGalaxyStore((s) => s.setSelectedProtocol);
 
-  // ESC: protocol → planet → galaxy (layered exit)
+  const endJourney = useJourneyStore((s) => s.endJourney);
+
+  // ESC: journey → protocol → planet → galaxy (layered exit)
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        if (selectedProtocol) {
+        if (activeRoute) {
+          endJourney();
+        } else if (selectedProtocol) {
           setSelectedProtocol(null);
         } else if (focused) {
           setFocused(null);
@@ -64,7 +112,7 @@ export function GalaxyCamera() {
     };
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);
-  }, [focused, selectedProtocol, setFocused, setSelectedProtocol]);
+  }, [focused, selectedProtocol, activeRoute, setFocused, setSelectedProtocol, endJourney]);
 
   // Click empty space: protocol → planet → galaxy
   useEffect(() => {

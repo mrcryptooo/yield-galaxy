@@ -1,5 +1,7 @@
 'use client';
 
+import { useJourneyStore } from '@/stores/journey-store';
+
 export interface CommsSignal {
   title: string;
   value: string;
@@ -8,6 +10,9 @@ export interface CommsSignal {
 }
 
 export function CommsConsole({ signals }: { signals?: CommsSignal[] }) {
+  const activeRoute = useJourneyStore((s) => s.activeRoute);
+  if (activeRoute) return null;
+
   const items = signals ?? [
     { title: 'Dock at USX', value: '1.33%', tag: 'NAV' },
     { title: 'Acquire PT-USX', value: '4.85%', tag: 'NAV' },
