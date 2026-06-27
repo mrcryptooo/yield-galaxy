@@ -16,6 +16,7 @@ export interface RouteTemplate {
   name: string;
   description: string;
   steps: RouteStepDef[];
+  _captainLines?: Record<string, string>;
 }
 
 export interface RouteStepDef {

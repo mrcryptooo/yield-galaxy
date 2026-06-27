@@ -42,8 +42,9 @@ export function CaptainPresence({ destinationCount }: { destinationCount?: numbe
     speech = CAPTAIN_COMPLETION_LINES[idx];
   } else if (activeRoute) {
     const node = activeRoute.nodes[activeRoute.currentStep];
-    const routeLines = CAPTAIN_JOURNEY_LINES[activeRoute.template.id];
-    speech = routeLines?.[node.action] ?? `Navigating to ${node.label}.`;
+    const dynamicLines = activeRoute.template._captainLines;
+    const staticLines = CAPTAIN_JOURNEY_LINES[activeRoute.template.id];
+    speech = dynamicLines?.[node.action] ?? staticLines?.[node.action] ?? `Navigating to ${node.label}.`;
   } else if (selectedProtocol) {
     speech = CAPTAIN_PROTOCOL_LINES[selectedProtocol] ?? 'Scanning this protocol...';
   } else if (focused) {

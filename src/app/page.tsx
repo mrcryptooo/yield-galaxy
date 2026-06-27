@@ -80,7 +80,7 @@ function HomeContent() {
         <CaptainPresence destinationCount={destinationCount} />
         <CommsConsole signals={commsSignals} />
         <TelemetryStrip readings={telemetryReadings} />
-        <RouteSelector />
+        <RouteSelector opportunities={opportunities} />
         <JourneyHud planetData={planetData} />
       </VisorLayer>
     </>
