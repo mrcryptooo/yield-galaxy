@@ -6,7 +6,7 @@ import { useGalaxyStore } from '@/stores/galaxy-store';
 import { CAPTAIN_LINES } from '@/components/galaxy/focus-cameras';
 import { CAPTAIN_PROTOCOL_LINES } from '@/components/galaxy/planet-data';
 
-export function CaptainPresence() {
+export function CaptainPresence({ destinationCount }: { destinationCount?: number }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const frameRef = useRef(0);
   const focused = useGalaxyStore((s) => s.focused);
@@ -16,7 +16,7 @@ export function CaptainPresence() {
     ? CAPTAIN_PROTOCOL_LINES[selectedProtocol] ?? 'Scanning this protocol...'
     : focused
     ? CAPTAIN_LINES[focused] ?? 'Interesting choice, Explorer.'
-    : 'Exploring Solstice Galaxy. 16 destinations detected.';
+    : `Exploring Solstice Galaxy. ${destinationCount ?? 16} destinations detected.`;
 
   useEffect(() => {
     let t = 0;

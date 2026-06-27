@@ -1,9 +1,3 @@
-/**
- * Static planet data for the experience layer.
- * Real data integration is Milestone 6.
- * These values match what DefiLlama returns for the Solstice ecosystem.
- */
-
 export interface Protocol {
   id: string;
   name: string;
@@ -25,7 +19,7 @@ export interface PlanetInfo {
   protocols: Protocol[];
 }
 
-export const PLANET_DATA: Record<string, PlanetInfo> = {
+export const FALLBACK_PLANET_DATA: Record<string, PlanetInfo> = {
   USX: {
     name: 'USX',
     description: 'The stablecoin at the heart of Solstice. Overcollateralized, reliable, the foundation of every journey.',

@@ -5,17 +5,17 @@ import { useFrame } from '@react-three/fiber';
 import { Html } from '@react-three/drei';
 import * as THREE from 'three';
 import { PLANET_POSITIONS } from './positions';
-import { PLANET_DATA, type Protocol } from './planet-data';
+import type { PlanetInfo, Protocol } from './planet-data';
 import { useGalaxyStore } from '@/stores/galaxy-store';
 
-export function PlanetExperience() {
+export function PlanetExperience({ planetData }: { planetData: Record<string, PlanetInfo> }) {
   const focused = useGalaxyStore((s) => s.focused);
   if (!focused) return null;
 
   const planetPos = PLANET_POSITIONS[focused];
   if (!planetPos) return null;
 
-  const data = PLANET_DATA[focused];
+  const data = planetData[focused];
   if (!data) return null;
 
   return (
@@ -27,7 +27,7 @@ export function PlanetExperience() {
 }
 
 // Floating information beside the planet — projected into space
-function InfoLayer({ data }: { data: typeof PLANET_DATA.USX }) {
+function InfoLayer({ data }: { data: PlanetInfo }) {
   const ref = useRef<HTMLDivElement>(null);
 
   return (

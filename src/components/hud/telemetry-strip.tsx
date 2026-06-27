@@ -1,6 +1,19 @@
 'use client';
 
-export function TelemetryStrip() {
+export interface TelemetryReading {
+  label: string;
+  value: string;
+  accent?: boolean;
+}
+
+export function TelemetryStrip({ readings }: { readings?: TelemetryReading[] }) {
+  const items = readings ?? [
+    { label: 'USX', value: '77 · A' },
+    { label: 'SLX-SOL', value: '405%', accent: true },
+    { label: 'PT-USX', value: 'FIXED' },
+    { label: 'SCAN', value: '6 < 0.5%' },
+  ];
+
   return (
     <div
       style={{
@@ -15,13 +28,12 @@ export function TelemetryStrip() {
         pointerEvents: 'none',
       }}
     >
-      <Reading label="USX" value="77 · A" />
-      <Dot />
-      <Reading label="SLX-SOL" value="405%" accent />
-      <Dot />
-      <Reading label="PT-USX" value="FIXED" />
-      <Dot />
-      <Reading label="SCAN" value="6 < 0.5%" />
+      {items.map((r, i) => (
+        <span key={i} style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+          {i > 0 && <Dot />}
+          <Reading label={r.label} value={r.value} accent={r.accent} />
+        </span>
+      ))}
     </div>
   );
 }

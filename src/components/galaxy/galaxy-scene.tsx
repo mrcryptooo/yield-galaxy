@@ -15,9 +15,10 @@ import { WorldEvents } from './world-events';
 import { Atmosphere } from './atmosphere';
 import { WorldLife } from './world-life';
 import { PlanetExperience } from './planet-experience';
+import type { PlanetInfo } from './planet-data';
 import { CAMERA } from './positions';
 
-function GalaxyContent() {
+function GalaxyContent({ planetData }: { planetData: Record<string, PlanetInfo> }) {
   return (
     <>
       <ambientLight intensity={0.03} color="#F5F0EB" />
@@ -32,7 +33,7 @@ function GalaxyContent() {
       <Moons />
       <Atmosphere />
       <WorldEvents />
-      <PlanetExperience />
+      <PlanetExperience planetData={planetData} />
 
       <GalaxyCamera />
 
@@ -43,7 +44,7 @@ function GalaxyContent() {
   );
 }
 
-export function GalaxyScene() {
+export function GalaxyScene({ planetData }: { planetData: Record<string, PlanetInfo> }) {
   return (
     <Canvas
       camera={{ position: [0, 45, 55], fov: CAMERA.fov, near: 0.1, far: 300 }}
@@ -52,7 +53,7 @@ export function GalaxyScene() {
       dpr={[1, 1.5]}
     >
       <Suspense fallback={null}>
-        <GalaxyContent />
+        <GalaxyContent planetData={planetData} />
       </Suspense>
     </Canvas>
   );

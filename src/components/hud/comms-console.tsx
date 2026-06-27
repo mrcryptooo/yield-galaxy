@@ -1,6 +1,19 @@
 'use client';
 
-export function CommsConsole() {
+export interface CommsSignal {
+  title: string;
+  value: string;
+  tag: string;
+  dimmed?: boolean;
+}
+
+export function CommsConsole({ signals }: { signals?: CommsSignal[] }) {
+  const items = signals ?? [
+    { title: 'Dock at USX', value: '1.33%', tag: 'NAV' },
+    { title: 'Acquire PT-USX', value: '4.85%', tag: 'NAV' },
+    { title: 'Harvest SLX', value: '405%', tag: 'NAV' },
+  ];
+
   return (
     <div
       style={{
@@ -16,17 +29,14 @@ export function CommsConsole() {
         pointerEvents: 'none',
       }}
     >
-      {/* System label */}
       <span className="hud-label" style={{ marginBottom: '2px', marginRight: '2px' }}>
         COMMS
       </span>
 
-      {/* Signal entries — right-aligned, no boxes, just text floating in space */}
-      <Signal title="Dock at USX" value="1.33%" tag="NAV" />
-      <Signal title="Acquire PT-USX" value="4.85%" tag="NAV" />
-      <Signal title="Harvest SLX" value="405%" tag="NAV" />
+      {items.map((s, i) => (
+        <Signal key={i} title={s.title} value={s.value} tag={s.tag} dimmed={s.dimmed} />
+      ))}
 
-      {/* Thin line — projected, not drawn */}
       <div style={{
         width: '40px',
         height: '1px',
