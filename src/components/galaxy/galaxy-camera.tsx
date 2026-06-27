@@ -1,0 +1,124 @@
+'use client';
+
+import { useRef, useState, useEffect } from 'react';
+import { useThree, useFrame } from '@react-three/fiber';
+import { OrbitControls } from '@react-three/drei';
+import * as THREE from 'three';
+import { CAMERA } from './positions';
+import { FOCUS_CAMERAS } from './focus-cameras';
+import { useGalaxyStore } from '@/stores/galaxy-store';
+
+const FINAL_POS = new THREE.Vector3(...CAMERA.position);
+const FINAL_TARGET = new THREE.Vector3(...CAMERA.target);
+const OPEN_POS = new THREE.Vector3(0, 45, 55);
+const OPEN_TARGET = new THREE.Vector3(0, 0, 10);
+
+export function GalaxyCamera() {
+  const controlsRef = useRef<React.ComponentRef<typeof OrbitControls>>(null);
+  const { camera, gl } = useThree();
+
+  const focused = useGalaxyStore((s) => s.focused);
+  const setFocused = useGalaxyStore((s) => s.setFocused);
+
+  const phase = useRef<'opening' | 'idle' | 'flying'>('opening');
+  const progress = useRef(0);
+  const flyFrom = useRef({ pos: new THREE.Vector3(), target: new THREE.Vector3() });
+  const flyTo = useRef({ pos: new THREE.Vector3(), target: new THREE.Vector3() });
+  const drift = useRef({ x: 0, y: 0 });
+
+  // React to focus changes
+  const prevFocused = useRef<string | null>(null);
+  useEffect(() => {
+    if (focused === prevFocused.current) return;
+    prevFocused.current = focused;
+
+    const ctrl = controlsRef.current as unknown as { target: THREE.Vector3 } | null;
+    flyFrom.current.pos.copy(camera.position);
+    flyFrom.current.target.copy(ctrl?.target ?? FINAL_TARGET);
+
+    if (focused && FOCUS_CAMERAS[focused]) {
+      const fc = FOCUS_CAMERAS[focused];
+      flyTo.current.pos.set(...fc.position);
+      flyTo.current.target.set(...fc.target);
+    } else {
+      flyTo.current.pos.copy(FINAL_POS);
+      flyTo.current.target.copy(FINAL_TARGET);
+    }
+    phase.current = 'flying';
+    progress.current = 0;
+  }, [focused, camera]);
+
+  // ESC to exit
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && focused) setFocused(null);
+    };
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, [focused, setFocused]);
+
+  // Click empty space to exit
+  useEffect(() => {
+    const handleClick = (e: MouseEvent) => {
+      if (focused && e.target === gl.domElement) {
+        setFocused(null);
+      }
+    };
+    gl.domElement.addEventListener('click', handleClick);
+    return () => gl.domElement.removeEventListener('click', handleClick);
+  }, [focused, setFocused, gl.domElement]);
+
+  useFrame((_, delta) => {
+    const ctrl = controlsRef.current as unknown as { target: THREE.Vector3 } | null;
+
+    // Opening
+    if (phase.current === 'opening') {
+      progress.current = Math.min(1, progress.current + delta * 0.18);
+      const e = smootherstep(progress.current);
+      camera.position.lerpVectors(OPEN_POS, FINAL_POS, e);
+      if (ctrl) ctrl.target.lerpVectors(OPEN_TARGET, FINAL_TARGET, e);
+      if (progress.current >= 1) phase.current = 'idle';
+      return;
+    }
+
+    // Flying (focus or return)
+    if (phase.current === 'flying') {
+      // ~1.8 second duration (delta * 0.55 ≈ 1/1.8)
+      progress.current = Math.min(1, progress.current + delta * 0.55);
+      const e = smootherstep(progress.current);
+      camera.position.lerpVectors(flyFrom.current.pos, flyTo.current.pos, e);
+      if (ctrl) ctrl.target.lerpVectors(flyFrom.current.target, flyTo.current.target, e);
+      if (progress.current >= 1) phase.current = 'idle';
+      return;
+    }
+
+    // Idle drift
+    drift.current.x += delta * 0.006;
+    drift.current.y += delta * 0.005;
+    camera.position.x += (Math.sin(drift.current.x * 0.5) * 0.04 + Math.sin(drift.current.x * 0.9) * 0.02) * delta;
+    camera.position.y += (Math.cos(drift.current.y * 0.35) * 0.02) * delta;
+  });
+
+  return (
+    <OrbitControls
+      ref={controlsRef}
+      target={FINAL_TARGET}
+      enablePan={false}
+      enableZoom={!focused}
+      enableRotate={!focused}
+      minDistance={10}
+      maxDistance={60}
+      dampingFactor={0.015}
+      enableDamping
+      rotateSpeed={0.25}
+      zoomSpeed={0.4}
+      minPolarAngle={0.3}
+      maxPolarAngle={Math.PI * 0.6}
+    />
+  );
+}
+
+function smootherstep(x: number): number {
+  x = Math.max(0, Math.min(1, x));
+  return x * x * x * (x * (x * 6 - 15) + 10);
+}
