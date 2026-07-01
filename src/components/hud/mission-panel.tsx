@@ -14,6 +14,7 @@ import { formatApy, timeAgo } from '@/lib/format';
 import { optimize } from '@/lib/optimizer/optimizer';
 import { buildGraph } from '@/lib/optimizer/opportunity-graph';
 import { optimizedRouteToTemplate, generateCaptainLines } from '@/lib/dynamic-route-builder';
+import { buildOwnedSymbolSet, computeAdaptiveStartStep } from '@/lib/wallet/adaptive-route';
 
 const DISCOVERY_AMOUNT = 1000;
 const BADGE_LIGHT_MS = 400;
@@ -79,10 +80,10 @@ export function MissionPanel({
   // Always read the freshest data/preference at fire-time inside the
   // completion timers below, without re-triggering the effect (and its
   // timers) every time react-query refreshes `opportunities`.
-  const latest = useRef({ opportunities, riskPreference });
+  const latest = useRef({ opportunities, riskPreference, walletTokens, walletSol });
   useEffect(() => {
-    latest.current = { opportunities, riskPreference };
-  }, [opportunities, riskPreference]);
+    latest.current = { opportunities, riskPreference, walletTokens, walletSol };
+  }, [opportunities, riskPreference, walletTokens, walletSol]);
 
   useEffect(() => {
     if (!completed) { setBadgeLit(false); setDiscovering(false); return; }
@@ -93,8 +94,12 @@ export function MissionPanel({
     const startScan = setTimeout(() => setDiscovering(true), SCAN_START_MS);
     const launchNext = setTimeout(() => {
       const next = findNextRoute(latest.current.opportunities, latest.current.riskPreference, recentRouteIds.current);
-      if (next) startJourney(next);
-      else endJourney();
+      if (next) {
+        const owned = buildOwnedSymbolSet(latest.current.walletTokens, latest.current.walletSol);
+        startJourney(next, computeAdaptiveStartStep(next.steps, owned));
+      } else {
+        endJourney();
+      }
     }, NEXT_LAUNCH_MS);
     return () => { clearTimeout(lightBadge); clearTimeout(startScan); clearTimeout(launchNext); };
     // eslint-disable-next-line react-hooks/exhaustive-deps

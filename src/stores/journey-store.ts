@@ -10,7 +10,7 @@ interface JourneyState {
   playing: boolean;
   completed: boolean;
   captainState: CaptainState;
-  startJourney: (template: RouteTemplate) => void;
+  startJourney: (template: RouteTemplate, initialStep?: number) => void;
   nextStep: () => void;
   prevStep: () => void;
   goToStep: (index: number) => void;
@@ -26,9 +26,14 @@ export const useJourneyStore = create<JourneyState>((set) => ({
   completed: false,
   captainState: 'idle',
 
-  startJourney: (template) => {
+  startJourney: (template, initialStep = 0) => {
+    const route = buildRoute(template);
+    // Mission Integration (Phase 14): a wallet-adaptive route can start
+    // partway through when the wallet already satisfies the leading steps
+    // (see lib/wallet/adaptive-route.ts) — clamp defensively either way.
+    const clamped = Math.max(0, Math.min(initialStep, route.nodes.length - 1));
     set({
-      activeRoute: buildRoute(template),
+      activeRoute: { ...route, currentStep: clamped },
       playing: true,
       completed: false,
       captainState: 'thinking',

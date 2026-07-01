@@ -48,45 +48,34 @@ export function TopBar() {
         </div>
       </div>
 
-      {/* Galaxy / List switch */}
+      {/* Galaxy / List / Portfolio switch — same glass pill, same instant
+          stateless switch as before, just a third tab. */}
       <div style={{
         display: 'flex', gap: '4px', padding: '4px',
         background: 'rgba(255,255,255,0.03)', borderRadius: '11px',
       }}>
-        <button
-          onClick={() => setMode('galaxy')}
-          style={{
-            cursor: 'pointer', border: 'none',
-            background: mode === 'galaxy' ? 'rgba(246,160,77,0.14)' : 'none',
-            borderRadius: '8px', padding: '8px 18px',
-            color: mode === 'galaxy' ? 'rgba(246,160,77,0.95)' : 'rgba(245,240,235,0.4)',
-            fontFamily: 'var(--font-geist-mono), monospace',
-            fontSize: 'var(--fs-caption)', letterSpacing: '0.1em', fontWeight: 600,
-            textTransform: 'uppercase',
-            transition: 'color var(--dur-fast) var(--ease-premium), background var(--dur-fast) var(--ease-premium)',
-          }}
-        >
-          Galaxy
-        </button>
-        <button
-          onClick={() => setMode('list')}
-          style={{
-            cursor: 'pointer', border: 'none',
-            background: mode === 'list' ? 'rgba(246,160,77,0.14)' : 'none',
-            borderRadius: '8px', padding: '8px 18px',
-            color: mode === 'list' ? 'rgba(246,160,77,0.95)' : 'rgba(245,240,235,0.4)',
-            fontFamily: 'var(--font-geist-mono), monospace',
-            fontSize: 'var(--fs-caption)', letterSpacing: '0.1em', fontWeight: 600,
-            textTransform: 'uppercase',
-            transition: 'color var(--dur-fast) var(--ease-premium), background var(--dur-fast) var(--ease-premium)',
-          }}
-        >
-          List
-        </button>
+        {([['galaxy', 'Galaxy'], ['list', 'List'], ['portfolio', 'Portfolio']] as const).map(([key, label]) => (
+          <button
+            key={key}
+            onClick={() => setMode(key)}
+            style={{
+              cursor: 'pointer', border: 'none',
+              background: mode === key ? 'rgba(246,160,77,0.14)' : 'none',
+              borderRadius: '8px', padding: '8px 18px',
+              color: mode === key ? 'rgba(246,160,77,0.95)' : 'rgba(245,240,235,0.4)',
+              fontFamily: 'var(--font-geist-mono), monospace',
+              fontSize: 'var(--fs-caption)', letterSpacing: '0.1em', fontWeight: 600,
+              textTransform: 'uppercase',
+              transition: 'color var(--dur-fast) var(--ease-premium), background var(--dur-fast) var(--ease-premium)',
+            }}
+          >
+            {label}
+          </button>
+        ))}
       </div>
 
-      {/* Reserved space — Wallet now lives here; Portfolio/Settings/
-          Notifications still not built. */}
+      {/* Reserved space — Wallet now lives here; Settings/Notifications
+          still not built. */}
       <div style={{ flex: 1 }} />
       <WalletConnect />
     </div>

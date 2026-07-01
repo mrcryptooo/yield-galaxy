@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useEffect, useState } from 'react';
+import { useRef, useEffect, useState, useMemo } from 'react';
 import Image from 'next/image';
 import { useGalaxyStore } from '@/stores/galaxy-store';
 import { useJourneyStore } from '@/stores/journey-store';
@@ -102,22 +102,48 @@ export function CaptainPresence({ destinationCount, bestOpportunitySummary, plan
   const walletPositions = useWalletStore((s) => s.positions);
   const walletLoading = useWalletStore((s) => s.loading);
 
+  // Portfolio-aware idle chatter (Phase 14): real, wallet-derived lines
+  // folded into the same idle rotation pool below, instead of a separate
+  // takeover — so Captain mentions the wallet naturally, without repeating
+  // itself any more than the existing idle dialogue already avoids.
+  const portfolioLines = useMemo(() => {
+    if (!walletConnected) return [];
+    const lines: string[] = [];
+    const idle = walletTokens.filter((t) => t.supported && (t.symbol === 'USDC' || t.symbol === 'USDT') && t.amount > 0);
+    for (const t of idle) {
+      lines.push(`You currently hold ${t.amount.toLocaleString(undefined, { maximumFractionDigits: 2 })} ${t.symbol}.`);
+    }
+    if (idle.length > 0 && walletPositions.length === 0) {
+      lines.push('I found idle assets sitting in your wallet.');
+      lines.push('I recommend putting that idle capital to work — check the Portfolio tab.');
+    }
+    if (walletPositions.length > 0) {
+      lines.push(`You already have an active ${walletPositions[0].protocol} position.`);
+    }
+    return lines;
+  }, [walletConnected, walletTokens, walletPositions]);
+
   // Idle dialogue: fires every 20-40s, never repeating the immediately
   // previous line. The if/else priority chain below only ever surfaces it as
   // the last resort, after focus/route/protocol/hover/briefing.
   const [idleLine, setIdleLine] = useState<string | null>(null);
   const lastIdleIndex = useRef(-1);
+  const idlePool = useRef<string[]>(IDLE_DIALOGUE);
+  useEffect(() => {
+    idlePool.current = [...IDLE_DIALOGUE, ...portfolioLines];
+  }, [portfolioLines]);
   useEffect(() => {
     let timeout: ReturnType<typeof setTimeout>;
     const schedule = () => {
       const delay = 20000 + Math.random() * 20000;
       timeout = setTimeout(() => {
-        let next = Math.floor(Math.random() * IDLE_DIALOGUE.length);
-        if (IDLE_DIALOGUE.length > 1) {
-          while (next === lastIdleIndex.current) next = Math.floor(Math.random() * IDLE_DIALOGUE.length);
+        const pool = idlePool.current;
+        let next = Math.floor(Math.random() * pool.length);
+        if (pool.length > 1) {
+          while (next === lastIdleIndex.current) next = Math.floor(Math.random() * pool.length);
         }
         lastIdleIndex.current = next;
-        setIdleLine(IDLE_DIALOGUE[next]);
+        setIdleLine(pool[next]);
         schedule();
       }, delay);
     };
@@ -132,7 +158,13 @@ export function CaptainPresence({ destinationCount, bestOpportunitySummary, plan
   const mountedView = useRef(false);
   useEffect(() => {
     if (!mountedView.current) { mountedView.current = true; return; }
-    setTransientLine(viewMode === 'list' ? 'List view — every opportunity, sorted and scored side by side.' : 'Back in the galaxy. Click any body to focus it.');
+    setTransientLine(
+      viewMode === 'list'
+        ? 'List view — every opportunity, sorted and scored side by side.'
+        : viewMode === 'portfolio'
+          ? 'This is your galaxy — real balances, real positions, personalized to you.'
+          : 'Back in the galaxy. Click any body to focus it.'
+    );
     const t = setTimeout(() => setTransientLine(null), 4000);
     return () => clearTimeout(t);
   }, [viewMode]);

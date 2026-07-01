@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import type { Connection, PublicKey } from '@solana/web3.js';
 import { fetchPortfolio, describeWalletError, type TokenBalance, type WalletPosition } from '@/lib/wallet/portfolio';
+import { fetchSolPrice } from '@/lib/wallet/price';
 
 // A dedicated store for real wallet connection + portfolio state — kept
 // entirely separate from journey/execution/optimizer stores. The actual
@@ -26,6 +27,8 @@ interface WalletState {
   balances: { sol: number };
   tokens: TokenBalance[];
   positions: WalletPosition[];
+  solUsdPrice: number | null;
+  solUsdChange24h: number | null;
   lastRefresh: string | null;
   loading: boolean;
   error: string | null;
@@ -56,6 +59,8 @@ export const useWalletStore = create<WalletState>((set, get) => ({
   balances: { sol: 0 },
   tokens: [],
   positions: [],
+  solUsdPrice: null,
+  solUsdChange24h: null,
   lastRefresh: null,
   loading: false,
   error: null,
@@ -96,11 +101,16 @@ export const useWalletStore = create<WalletState>((set, get) => ({
     if (!_bridge?.publicKey) return;
     set({ loading: true, error: null });
     try {
-      const result = await fetchPortfolio(_bridge.connection, _bridge.publicKey);
+      const [result, price] = await Promise.all([
+        fetchPortfolio(_bridge.connection, _bridge.publicKey),
+        fetchSolPrice(),
+      ]);
       set({
         balances: { sol: result.sol },
         tokens: result.tokens,
         positions: result.positions,
+        solUsdPrice: price?.usd ?? null,
+        solUsdChange24h: price?.usd24hChange ?? null,
         lastRefresh: new Date().toISOString(),
         loading: false,
       });
@@ -117,6 +127,8 @@ export const useWalletStore = create<WalletState>((set, get) => ({
     balances: { sol: 0 },
     tokens: [],
     positions: [],
+    solUsdPrice: null,
+    solUsdChange24h: null,
     lastRefresh: null,
     error: null,
   }),

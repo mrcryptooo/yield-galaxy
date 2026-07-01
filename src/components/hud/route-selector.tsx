@@ -4,9 +4,11 @@ import { useCallback } from 'react';
 import { useJourneyStore } from '@/stores/journey-store';
 import { useOptimizerStore } from '@/stores/optimizer-store';
 import { useCaptainStore } from '@/stores/captain-store';
+import { useWalletStore } from '@/stores/wallet-store';
 import { optimize } from '@/lib/optimizer/optimizer';
 import { buildGraph } from '@/lib/optimizer/opportunity-graph';
 import { optimizedRouteToTemplate, generateCaptainLines } from '@/lib/dynamic-route-builder';
+import { buildOwnedSymbolSet, computeAdaptiveStartStep } from '@/lib/wallet/adaptive-route';
 import { buildBriefing } from '@/lib/captain/summary';
 import { formatApy } from '@/lib/format';
 import type { Opportunity } from '@/lib/types';
@@ -29,6 +31,8 @@ export function RouteSelector({ opportunities }: { opportunities?: Opportunity[]
   const setResult = useOptimizerStore((s) => s.setResult);
 
   const setBriefing = useCaptainStore((s) => s.setBriefing);
+  const walletTokens = useWalletStore((s) => s.tokens);
+  const walletSol = useWalletStore((s) => s.balances.sol);
 
   const runOptimizer = useCallback(() => {
     if (!opportunities || opportunities.length === 0) return;
@@ -51,8 +55,12 @@ export function RouteSelector({ opportunities }: { opportunities?: Opportunity[]
       risk: route.simulation.cumulativeRisk,
       score: route.score.total,
     };
-    startJourney(template);
-  }, [graph, startJourney]);
+    // Mission Integration (Phase 14): skip any leading step the wallet
+    // already satisfies instead of always starting at step 0.
+    const owned = buildOwnedSymbolSet(walletTokens, walletSol);
+    const initialStep = computeAdaptiveStartStep(template.steps, owned);
+    startJourney(template, initialStep);
+  }, [graph, startJourney, walletTokens, walletSol]);
 
   if (activeRoute) return null;
 

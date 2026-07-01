@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-type ViewMode = 'galaxy' | 'list';
+type ViewMode = 'galaxy' | 'list' | 'portfolio';
 
 interface ViewState {
   mode: ViewMode;

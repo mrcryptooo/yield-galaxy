@@ -12,6 +12,7 @@ import { RouteSelector } from '@/components/hud/route-selector';
 import { PlanetInfoPanel } from '@/components/hud/planet-info-panel';
 import { StationInfoPanel } from '@/components/hud/station-info-panel';
 import { ListView } from '@/components/list/list-view';
+import { PortfolioView } from '@/components/portfolio/portfolio-view';
 import { useYields } from '@/hooks/use-yields';
 import { buildPlanetData } from '@/lib/build-planet-data';
 import { formatApy } from '@/lib/format';
@@ -104,6 +105,7 @@ function HomeContent() {
         </Suspense>
 
         <ListView opportunities={opportunities} />
+        <PortfolioView opportunities={opportunities} />
       </CenterPanel>
 
       <RightPanel>
