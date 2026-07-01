@@ -15,8 +15,8 @@ import { WorldEvents } from './world-events';
 import { Atmosphere } from './atmosphere';
 import { WorldLife } from './world-life';
 import { PlanetExperience } from './planet-experience';
-import { RouteTrails } from './route-trails';
 import { JourneyPlayer } from './journey-player';
+import { MissionFocusSync } from './mission-focus-sync';
 import type { PlanetInfo } from './planet-data';
 import { CAMERA } from './positions';
 
@@ -36,8 +36,8 @@ function GalaxyContent({ planetData }: { planetData: Record<string, PlanetInfo> 
       <Atmosphere />
       <WorldEvents />
       <PlanetExperience planetData={planetData} />
-      <RouteTrails />
       <JourneyPlayer />
+      <MissionFocusSync />
 
       <GalaxyCamera />
 

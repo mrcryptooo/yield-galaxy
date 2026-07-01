@@ -167,7 +167,7 @@ export function GalaxyCamera() {
     // Flying (focus or return) — momentum + slight overshoot before settling,
     // so a fly-to reads as weighted travel rather than a linear tween.
     if (phase.current === 'flying') {
-      const speed = activeRoute ? 0.32 : 0.55;
+      const speed = activeRoute ? 0.24 : 0.55;
       progress.current = Math.min(1, progress.current + delta * speed);
       const posEase = easeOutBackSoft(progress.current);
       const targetEase = smootherstep(progress.current);

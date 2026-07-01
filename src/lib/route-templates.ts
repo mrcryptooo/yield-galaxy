@@ -70,42 +70,45 @@ export const ROUTE_TEMPLATES: RouteTemplate[] = [
   },
 ];
 
+// Captain-as-narrator: every step gets a unique line explaining what's
+// happening and why, not just a status update. Written to be read aloud
+// during the (now slower) dwell pause at each destination.
 export const CAPTAIN_JOURNEY_LINES: Record<string, Record<string, string>> = {
   'deposit-usx': {
-    acquire: 'We begin with USDC. The universal currency.',
-    swap: 'Converting to USX — Solstice\'s stablecoin.',
-    navigate: 'Setting course for Kamino.',
-    deposit: 'USX deposited. Yield is now flowing.',
+    acquire: "You'll start with USDC before entering the Solstice ecosystem.",
+    swap: 'USX is the gateway asset for this route — everything else builds on it.',
+    navigate: 'Kamino currently offers the safest lending opportunity for USX.',
+    deposit: 'Deposited. Your USX is now earning — welcome to Solstice.',
   },
   'lending-usx': {
-    acquire: 'Acquiring USX for the lending loop.',
-    navigate: 'Approaching Kamino\'s lending markets.',
-    deposit: 'Collateral deposited. Borrowing power activated.',
-    borrow: 'USX borrowed against your collateral.',
-    loop: 'Looped. Leveraged yield engaged.',
+    acquire: "USX first — you can't loop what you don't hold.",
+    navigate: "Kamino's lending markets are where this loop lives.",
+    deposit: 'Collateral in. This unlocks your borrowing power.',
+    borrow: "Borrowing against your own collateral — that's how the loop leverages yield.",
+    loop: 'Redeposited. Your exposure just compounded — and so did your yield.',
   },
   'yield-eusx': {
-    acquire: 'Starting with USX.',
-    convert: 'Converting to eUSX — delta-neutral yield.',
-    navigate: 'Heading to Kamino.',
-    deposit: 'eUSX deposited. Yield flows inverse to stSLX.',
+    acquire: 'USX is the raw material eUSX is built from.',
+    convert: 'eUSX trades stability for a delta-neutral funding-rate strategy.',
+    navigate: 'Kamino is where eUSX deposits go to work.',
+    deposit: 'This step increases yield, but also increases exposure — and it moves inverse to stSLX.',
   },
   'lp-slx': {
-    acquire: 'Acquiring SLX. High energy token.',
-    navigate: 'Docking at Orca\'s liquidity pools.',
-    lp: 'Liquidity provided. Fees are accumulating.',
-    harvest: 'Collecting trading fees. Yield harvested.',
+    acquire: 'SLX is the volatile half of this pair — high energy, high reward.',
+    navigate: 'Orca holds the deepest SLX-SOL liquidity in the sector.',
+    lp: 'Providing liquidity now — this increases yield but also your impermanent loss exposure.',
+    harvest: 'Fees collected. That locks in what the pool has already earned.',
   },
   'pt-usx': {
-    acquire: 'Starting with USX.',
-    navigate: 'Approaching Kamino\'s yield markets.',
-    mint: 'Minting PT-USX. Fixed yield locked.',
-    hold: 'Hold to maturity. Guaranteed return.',
+    acquire: 'USX is what gets locked into the Principal Token.',
+    navigate: "Kamino's Exponent markets host PT-USX.",
+    mint: 'Minted. Your rate is now fixed until maturity — no surprises either way.',
+    hold: 'Hold to maturity. The waiting is the entire strategy from here.',
   },
   'stake-slx': {
-    acquire: 'Acquiring SLX for staking.',
-    stake: 'Staking SLX. The patient path begins.',
-    navigate: 'Setting course for Kamino.',
-    deposit: 'stSLX deposited. Long-term yield engaged.',
+    acquire: 'SLX first, before it can be staked.',
+    stake: 'Staked into stSLX — the long game begins.',
+    navigate: "Kamino accepts stSLX deposits for a second layer of yield.",
+    deposit: 'Deposited. Staking rewards and lending yield, stacked.',
   },
 };

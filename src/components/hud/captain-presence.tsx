@@ -149,8 +149,8 @@ export function CaptainPresence({ destinationCount, bestOpportunitySummary, plan
     stateLabel = executionPlan.status === 'executing' ? 'EXECUTING' : executionPlan.status === 'completed' ? 'CONFIRMED' : executionPlan.status === 'failed' ? 'FAILED' : 'READY';
   } else if (activeRoute && completed) {
     speech = briefing?.idleSpeech
-      ? `Route complete. ${briefing.analysis?.headline ?? 'Position established.'}`
-      : 'Mission accomplished.';
+      ? `Excellent work. ${briefing.analysis?.headline ?? 'Your route has been completed successfully.'}`
+      : 'Excellent work. Your route has been completed successfully.';
     stateLabel = 'SUCCESS';
   } else if (activeRoute) {
     const node = activeRoute.nodes[activeRoute.currentStep];

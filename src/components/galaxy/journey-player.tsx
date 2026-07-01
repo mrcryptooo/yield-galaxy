@@ -4,10 +4,11 @@ import { useRef, useEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { useJourneyStore } from '@/stores/journey-store';
 
-// Cinematic pacing: longer dwell at each destination, slightly slower travel,
-// so a mission reads as a guided tour rather than a technical checklist.
-const DWELL_TIME = 4.6;
-const FLY_TIME = 2.6;
+// Cinematic pacing: long dwell at each destination — enough time for
+// Captain's line, the estimate, and the reason to actually be read — and
+// slower travel, so a mission reads as a guided tour, not a checklist.
+const DWELL_TIME = 7.5;
+const FLY_TIME = 3.4;
 
 export function JourneyPlayer() {
   const activeRoute = useJourneyStore((s) => s.activeRoute);
