@@ -3,6 +3,7 @@
 import { lazy, Suspense, useMemo } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AppShell, TopBar, LeftPanel, CenterPanel, RightPanel, BottomPanel } from '@/components/hud/app-shell';
+import { SolanaWalletProvider } from '@/components/providers/solana-wallet-provider';
 import { CaptainPresence } from '@/components/hud/captain-presence';
 import { CommsConsole } from '@/components/hud/comms-console';
 import { TelemetryStrip } from '@/components/hud/telemetry-strip';
@@ -121,7 +122,9 @@ function HomeContent() {
 export default function Home() {
   return (
     <QueryClientProvider client={queryClient}>
-      <HomeContent />
+      <SolanaWalletProvider>
+        <HomeContent />
+      </SolanaWalletProvider>
     </QueryClientProvider>
   );
 }

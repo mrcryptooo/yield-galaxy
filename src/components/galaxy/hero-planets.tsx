@@ -6,6 +6,7 @@ import { Billboard, useTexture, Html } from '@react-three/drei';
 import * as THREE from 'three';
 import { PLANET_POSITIONS } from './positions';
 import { useGalaxyStore } from '@/stores/galaxy-store';
+import { useWalletStore } from '@/stores/wallet-store';
 
 const TEXTURES: Record<string, string> = {
   USX: '/assets/planets/usx-planet.webp',
@@ -97,6 +98,11 @@ function Planet({ name }: { name: 'USX' | 'eUSX' | 'SLX' | 'stSLX' }) {
   const setFocused = useGalaxyStore((s) => s.setFocused);
   const setHovered = useGalaxyStore((s) => s.setHovered);
 
+  // Wallet Integration (Phase 13) — subtle ownership highlight: a real
+  // wallet holding of this planet's token gives it a slightly stronger
+  // glow, nothing more aggressive than the existing hover/focus reactions.
+  const owned = useWalletStore((s) => s.tokens.some((t) => t.symbol === name && t.supported && t.amount > 0));
+
   const isMe = focused === name;
   const isMeHovered = hovered === name;
   // Focus Mode (Task 2): ANY focused body — planet or station — should dim
@@ -129,7 +135,7 @@ function Planet({ name }: { name: 'USX' | 'eUSX' | 'SLX' | 'stSLX' }) {
 
     // Spring targets
     const targetScale = isMeHovered ? 1.08 : isMe ? 1.04 : 1;
-    const targetGlow = isMe ? 1.6 : dimmed ? 0.5 : isMeHovered ? 1.3 : 1;
+    const targetGlow = (isMe ? 1.6 : dimmed ? 0.5 : isMeHovered ? 1.3 : 1) + (owned ? 0.15 : 0);
 
     // Spring interpolation (damped)
     springScale.current += (targetScale - springScale.current) * delta * 4;

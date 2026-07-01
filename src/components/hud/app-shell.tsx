@@ -3,6 +3,7 @@
 import type { ReactNode } from 'react';
 import Image from 'next/image';
 import { useViewStore } from '@/stores/view-store';
+import { WalletConnect } from './wallet-connect';
 
 // Unified App Shell (Task 1): one persistent CSS Grid — top bar, left panel,
 // center (galaxy owns this — no chrome), right panel, bottom mission panel.
@@ -84,9 +85,10 @@ export function TopBar() {
         </button>
       </div>
 
-      {/* Reserved space for Wallet / Portfolio / Settings / Notifications —
-          not built yet, intentionally left empty. */}
+      {/* Reserved space — Wallet now lives here; Portfolio/Settings/
+          Notifications still not built. */}
       <div style={{ flex: 1 }} />
+      <WalletConnect />
     </div>
   );
 }

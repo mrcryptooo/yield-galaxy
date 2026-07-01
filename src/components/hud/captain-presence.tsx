@@ -8,6 +8,7 @@ import { useCaptainStore } from '@/stores/captain-store';
 import { useExecutionStore } from '@/stores/execution-store';
 import { useOptimizerStore } from '@/stores/optimizer-store';
 import { useViewStore } from '@/stores/view-store';
+import { useWalletStore } from '@/stores/wallet-store';
 import { CAPTAIN_LINES } from '@/components/galaxy/focus-cameras';
 import { CAPTAIN_PROTOCOL_LINES } from '@/components/galaxy/planet-data';
 import type { PlanetInfo } from '@/components/galaxy/planet-data';
@@ -96,6 +97,10 @@ export function CaptainPresence({ destinationCount, bestOpportunitySummary, plan
   const executionPlan = useExecutionStore((s) => s.plan);
   const viewMode = useViewStore((s) => s.mode);
   const riskPreference = useOptimizerStore((s) => s.riskPreference);
+  const walletConnected = useWalletStore((s) => s.connected);
+  const walletTokens = useWalletStore((s) => s.tokens);
+  const walletPositions = useWalletStore((s) => s.positions);
+  const walletLoading = useWalletStore((s) => s.loading);
 
   // Idle dialogue: fires every 20-40s, never repeating the immediately
   // previous line. The if/else priority chain below only ever surfaces it as
@@ -140,6 +145,45 @@ export function CaptainPresence({ destinationCount, bestOpportunitySummary, plan
     const t = setTimeout(() => setTransientLine(null), 4000);
     return () => clearTimeout(t);
   }, [riskPreference]);
+
+  // Wallet-aware: a one-off reaction to connect/disconnect, not a permanent
+  // takeover of Captain's speech — fades back into the normal priority
+  // chain below, same pattern as the view/risk transients above. Waits for
+  // the balance fetch to land (walletLoading) before greeting, so the line
+  // can actually reference real detected balances/positions.
+  const [walletLine, setWalletLine] = useState<string | null>(null);
+  const wasConnected = useRef(false);
+  const greeted = useRef(false);
+  useEffect(() => {
+    if (walletConnected && !wasConnected.current) {
+      wasConnected.current = true;
+      greeted.current = false;
+    }
+    if (!walletConnected && wasConnected.current) {
+      wasConnected.current = false;
+      greeted.current = false;
+      setWalletLine('No wallet connected.');
+      const t = setTimeout(() => setWalletLine(null), 4000);
+      return () => clearTimeout(t);
+    }
+    if (walletConnected && wasConnected.current && !greeted.current && !walletLoading) {
+      greeted.current = true;
+      let line = 'Welcome back, Explorer.';
+      if (walletPositions.length > 0) {
+        line += ` You already have active positions on ${walletPositions[0].protocol}.`;
+      } else {
+        const usdc = walletTokens.find((t) => t.symbol === 'USDC' && t.supported);
+        if (usdc && usdc.amount > 0) {
+          line += ` I detected ${usdc.amount.toLocaleString(undefined, { maximumFractionDigits: 2 })} USDC.`;
+        } else {
+          line += " You're ready for your first mission.";
+        }
+      }
+      setWalletLine(line);
+      const t = setTimeout(() => setWalletLine(null), 6000);
+      return () => clearTimeout(t);
+    }
+  }, [walletConnected, walletLoading, walletTokens, walletPositions]);
 
   let speech: string;
   let stateLabel: string = '';
@@ -191,6 +235,8 @@ export function CaptainPresence({ destinationCount, bestOpportunitySummary, plan
     speech = CAPTAIN_LINES[hovered] ?? `Take a closer look at ${hovered}?`;
   } else if (hoveredStation) {
     speech = STATION_LINES[hoveredStation] ?? `Take a closer look at ${hoveredStation}?`;
+  } else if (walletLine) {
+    speech = walletLine;
   } else if (transientLine) {
     speech = transientLine;
   } else if (idleLine) {

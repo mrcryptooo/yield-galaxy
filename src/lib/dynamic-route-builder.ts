@@ -22,6 +22,7 @@ export function optimizedRouteToTemplate(
       type: nodeType,
       celestialKey,
       action,
+      assetSymbol: nodeId,
     });
   }
 

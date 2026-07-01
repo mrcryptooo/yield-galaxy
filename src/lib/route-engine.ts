@@ -9,6 +9,11 @@ export interface RouteNode {
   celestialKey: string;
   action: string;
   position: [number, number, number];
+  // The raw token/asset symbol this step concerns (e.g. 'USDC' for the
+  // first "acquire" step, whose celestialKey points at 'USX' for camera/
+  // Captain-line purposes instead). Lets Mission Control show a real wallet
+  // balance for the step without parsing it back out of `label`.
+  assetSymbol?: string;
 }
 
 export interface RouteTemplate {
@@ -27,6 +32,7 @@ export interface RouteStepDef {
   type: NodeType;
   celestialKey: string;
   action: string;
+  assetSymbol?: string;
 }
 
 export interface ActiveRoute {
@@ -72,6 +78,7 @@ export function buildRoute(template: RouteTemplate): ActiveRoute {
     celestialKey: step.celestialKey,
     action: step.action,
     position: resolveNodePosition(step.type, step.celestialKey),
+    assetSymbol: step.assetSymbol,
   }));
 
   return { template, nodes, currentStep: 0 };

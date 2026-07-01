@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useJourneyStore } from '@/stores/journey-store';
 import { useOptimizerStore } from '@/stores/optimizer-store';
+import { useWalletStore } from '@/stores/wallet-store';
 import type { PlanetInfo } from '@/components/galaxy/planet-data';
 import type { Opportunity } from '@/lib/types';
 import type { RiskPreference } from '@/lib/optimizer/constraints';
@@ -67,6 +68,9 @@ export function MissionPanel({
   const endJourney = useJourneyStore((s) => s.endJourney);
   const startJourney = useJourneyStore((s) => s.startJourney);
   const riskPreference = useOptimizerStore((s) => s.riskPreference);
+  const walletConnected = useWalletStore((s) => s.connected);
+  const walletTokens = useWalletStore((s) => s.tokens);
+  const walletSol = useWalletStore((s) => s.balances.sol);
 
   const [badgeLit, setBadgeLit] = useState(false);
   const [discovering, setDiscovering] = useState(false);
@@ -164,6 +168,29 @@ export function MissionPanel({
   const nextHeadline = next ? getNarrativeLabel(next.action, next.celestialKey, activeRoute.currentStep + 1, total) : null;
 
   const status = discovering ? 'SCANNING' : completed ? 'MISSION COMPLETE' : 'IN PROGRESS';
+
+  // Real wallet balance for the asset this step is about — only shown for
+  // the "acquiring/holding an asset" family of actions, and only ever real
+  // data: no wallet connected or an untracked token both render an honest
+  // fallback line instead of a fabricated number.
+  const ASSET_STEP_ACTIONS = new Set(['acquire', 'swap', 'convert', 'stake']);
+  let availableLine: string | null = null;
+  if (!completed && !discovering && current.assetSymbol && ASSET_STEP_ACTIONS.has(current.action)) {
+    if (!walletConnected) {
+      availableLine = 'Connect a wallet to see your available balance.';
+    } else if (current.assetSymbol === 'SOL') {
+      availableLine = `${walletSol.toLocaleString(undefined, { maximumFractionDigits: 4 })} SOL`;
+    } else {
+      const token = walletTokens.find((t) => t.symbol === current.assetSymbol);
+      if (!token || !token.supported) {
+        availableLine = `${current.assetSymbol} balance not tracked yet`;
+      } else if (token.amount > 0) {
+        availableLine = `${token.amount.toLocaleString(undefined, { maximumFractionDigits: 2 })} ${token.symbol}`;
+      } else {
+        availableLine = `No ${current.assetSymbol} available`;
+      }
+    }
+  }
 
   return (
     <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -324,6 +351,11 @@ export function MissionPanel({
                     <span style={{ color: 'rgba(246,160,77,0.5)', fontWeight: 600 }}>Reason: </span>{stepMeta.reason}
                   </span>
                 </div>
+                {availableLine && (
+                  <div style={{ fontSize: '10px', color: 'rgba(245,240,235,0.4)' }}>
+                    <span style={{ color: 'rgba(246,160,77,0.5)', fontWeight: 600 }}>Available: </span>{availableLine}
+                  </div>
+                )}
               </>
             )}
           </div>

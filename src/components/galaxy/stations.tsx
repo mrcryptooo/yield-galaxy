@@ -6,6 +6,7 @@ import { Billboard, useTexture, Html } from '@react-three/drei';
 import * as THREE from 'three';
 import { STATION_POSITIONS } from './positions';
 import { useGalaxyStore } from '@/stores/galaxy-store';
+import { useWalletStore } from '@/stores/wallet-store';
 
 const TEXTURES: Record<string, string> = {
   Kamino: '/assets/stations/kamino-station.webp',
@@ -56,6 +57,10 @@ function Station({ name }: { name: keyof typeof STATION_POSITIONS }) {
   // focused, so the scene always reads "this one thing is what matters".
   const dimmed = (focusedStation !== null && !isFocused) || focused !== null;
 
+  // Wallet Integration (Phase 13) — subtle ownership highlight when the
+  // connected wallet holds a real position on this protocol.
+  const hasPosition = useWalletStore((s) => s.positions.some((p) => p.protocol === name));
+
   const rhythm = useMemo(() => ({
     speed: 0.6 + Math.random() * 0.8,
     phase: Math.random() * Math.PI * 2,
@@ -76,7 +81,7 @@ function Station({ name }: { name: keyof typeof STATION_POSITIONS }) {
     const t = clock.elapsedTime;
 
     const targetScale = isFocused ? 1.1 : isHovered ? 1.12 : 1;
-    const targetGlow = isFocused ? 1.7 : dimmed ? 0.45 : isHovered ? 1.5 : 1;
+    const targetGlow = (isFocused ? 1.7 : dimmed ? 0.45 : isHovered ? 1.5 : 1) + (hasPosition ? 0.15 : 0);
     springScale.current += (targetScale - springScale.current) * delta * 4;
     springGlow.current += (targetGlow - springGlow.current) * delta * 3;
 
