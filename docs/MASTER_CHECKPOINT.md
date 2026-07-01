@@ -19,12 +19,12 @@ C:\Users\M\Desktop\sols
 # Current Status
 
 **Current Phase:**
-Final UX + Visual Polish (complete) — Mission Control Intelligence (live command center, continuous discovery, discovery mode, narrative missions)
+Phase 13 — Wallet Integration (real Solana wallet connection: Phantom/Backpack/Solflare, live balances, Captain/Mission Control/Galaxy wallet-awareness)
 
 **Project Health:** Stable. Working tree clean, no uncommitted changes.
 
 **Current Git Commit:**
-`516f537` — "Mission Control Intelligence: live command center, continuous discovery, discovery mode, narrative missions"
+`37c5ab9` — "Phase 13: real Solana wallet integration (Phantom, Backpack, Solflare)"
 
 **Current Branch:**
 `main` (up to date with `origin/main`)
@@ -49,6 +49,8 @@ https://yield-galaxy.vercel.app (Vercel project `yield-galaxy`, org `team_bFeeyU
 - Phase 9 — Captain Intelligence ✅
 - Phase 10 — Execution Engine ✅
 - Phase 11 — Production Polish ✅
+- Phase 12 — Mission Control Intelligence ✅ (live command center, continuous discovery, discovery mode, narrative missions)
+- Phase 13 — Wallet Integration ✅ (real Phantom/Backpack/Solflare connection, live balances, no transactions yet)
 
 (Note: commit history groups these under slightly different labels — `Milestone 4/5`, `Phase 6`, `Phase 7/7B`, `Phase 8`, `Phase 9`, `Phase 10`, `Phase 11` — but the delivered scope matches the list above 1:1.)
 
@@ -78,6 +80,9 @@ The Mission Panel (Bottom Panel, always present) is a live command center, not a
 
 Objective headlines (`getNarrativeLabel()` in `mission-narration.ts`) are a presentation-only adventure framing (Acquire Fuel / Convert Fuel / Enter Solstice / Reach `<station>` / Collect Rewards, with the last node always "Collect Rewards") — the real protocol/asset stays visible in the Captain line directly beneath. `getStepMeta()` also gained a generic action-keyed fallback table, since `MISSION_STEP_META` was keyed by the (unused) static template ids and virtually never matched a real optimizer-generated mission — dynamic missions were silently showing a placeholder estimate/reason before this fix.
 
+**Wallet** (`src/stores/wallet-store.ts`, `src/lib/wallet/`, `src/components/providers/solana-wallet-provider.tsx`, `hud/wallet-connect.tsx`)
+A dedicated store — deliberately not mixed with journey/execution/optimizer state — backed by the official `@solana/wallet-adapter-react` (+ `-base`, `-phantom`, `-solflare`; Backpack auto-registers via the Wallet Standard, which is how modern wallet-adapter recommends supporting it — there's no maintained legacy adapter package for it). `solana-wallet-provider.tsx` wraps `<HomeContent>` in `page.tsx` with `ConnectionProvider`/`WalletProvider` and a `WalletStoreBridge` that mirrors the (hook-based) adapter context into the store and funnels every wallet error (rejected/not installed/wrong network/RPC failure/disconnected) through `onError` into `store.error` instead of an unhandled console error. `store.connect(walletName?)`/`disconnect()`/`refresh()` work from anywhere — Top Bar, Captain, Mission Control — without those callers needing `useWallet()`/`useConnection()` directly. `lib/wallet/portfolio.ts` does real on-chain reads only: SOL via `getBalance`, USDC/USDT via `getParsedTokenAccountsByOwner` against their canonical mainnet mints. USX/eUSX/SLX/stSLX are real Solstice Finance tokens, but their mint addresses couldn't be verified against an authoritative source in this environment (`docs.solstice.finance` blocked automated fetching) — rather than risk hardcoding a wrong stablecoin-shaped address, `lib/wallet/tokens.ts` leaves them `mint: null` and the portfolio service reports them `supported: false` (untracked, not a fabricated zero). Protocol positions (e.g. Kamino obligations) return a real empty list — position detection isn't implemented yet, so `positions` is honestly empty rather than fabricated. Wired into: Top Bar (`wallet-connect.tsx` — connect menu / connected chip with icon+name+short address+stablecoin portfolio figure), Captain (`captain-presence.tsx` — one-off transient reaction on connect/disconnect, same fade-then-resume pattern as the existing view/risk transients), Mission Control (`mission-panel.tsx` — real "Available: X TOKEN" line on acquire/swap/convert/stake steps, via a new optional `assetSymbol` on `RouteNode`/`RouteStepDef` in `route-engine.ts`/`dynamic-route-builder.ts`), and the Galaxy (`hero-planets.tsx`/`stations.tsx` — a real holding/position gives a +0.15 glow boost on top of the existing spring-damped glow, no new geometry). Transactions/swap/deposit/withdraw/stake are explicitly out of scope — the Execution Engine still runs on `MockWalletAdapter`.
+
 **Optimizer** (`src/lib/optimizer/`)
 `opportunity-graph.ts` (directed graph) → DFS path search → `constraints.ts` filtering → `scorer.ts` multi-factor scoring → `simulator.ts`. `optimizer.ts` returns top 8 scored routes. Backed by `optimizer-store.ts`.
 
@@ -94,7 +99,7 @@ Full data-table alternative view, toggled via `view-store.ts` (`mode: 'galaxy' |
 Fixed top-left: logo (`yield-galaxy-logo.png`) + "Yield Galaxy" + "Built on Solstice", low-opacity floating text, no background panel.
 
 **Stores** (`src/stores/`)
-`galaxy-store`, `journey-store`, `optimizer-store`, `captain-store`, `execution-store`, `view-store` — all Zustand, no cross-store coupling beyond what's read in HUD components.
+`galaxy-store`, `journey-store`, `optimizer-store`, `captain-store`, `execution-store`, `view-store`, `wallet-store` — all Zustand, no cross-store coupling beyond what's read in HUD components.
 
 **Data Layer** (`src/lib/`)
 Types, constants, DefiLlama fetcher, scoring/risk engine, celestial mapping, adapter, format helpers — feeds both the galaxy and the list view from one source of truth (`useYields()`).
@@ -146,8 +151,10 @@ All under `C:\Users\M\Desktop\sols\public\assets\`:
 - [x] Captain animation — 300px, idle dialogue every 20-40s, hover reaction, blink animation
 - [x] Background scaling — two independently-rotating parallax nebula shells added for depth
 - [ ] Mobile optimization — still not audited/built (out of scope for this pass)
-- [ ] Wallet integration — real wallet connection not implemented (execution engine currently uses `MockWalletAdapter`)
-- [ ] Transaction execution — real on-chain execution not implemented (simulation-only today)
+- [x] Wallet integration — real Phantom/Backpack/Solflare connection via `@solana/wallet-adapter-react`, live SOL/USDC/USDT balances
+- [ ] USX/eUSX/SLX/stSLX on-chain balances — mint addresses not yet verified against an authoritative source (see Wallet architecture note); reported as untracked, not fabricated
+- [ ] Protocol position detection (e.g. Kamino obligations) — not implemented; wallet store's `positions` is honestly empty rather than fabricated
+- [ ] Transaction execution — real on-chain execution not implemented (simulation-only today, execution engine still uses `MockWalletAdapter`)
 - [x] Final UX polish — global consistency pass done (typography, glass, spacing, HUD panel collision fix)
 
 Known pre-existing, out-of-scope condition: `npm run lint` reports 48 errors / 9 warnings, all inherent to idiomatic React Three Fiber code (imperative mutation of Three.js objects inside `useFrame`, `Math.random` in `useMemo`, ref access during render) across locked systems (`atmosphere.tsx`, `star-field.tsx`, `route-trails.tsx`, `world-events.tsx`, `world-life.tsx`, `galaxy-camera.tsx`). Verified byte-identical against commit `d30884d` (before the first polish pass) via `git stash` — introduced zero new lint errors since.
@@ -160,6 +167,8 @@ Two real duplicate-React-key bugs were found and fixed during these passes (not 
 
 # Next Milestone
 
-**Final UX + Visual Polish**
+**Phase 14 — Transactions** (not started; explicitly deferred by the Phase 13 brief)
+
+Swap / Deposit / Withdraw / Stake and a real Portfolio page. Will need to replace `MockWalletAdapter` in the (locked) Execution Engine with the real wallet-store's signing capability, and a verified mint address for USX/eUSX/SLX/stSLX before their balances can be tracked on-chain.
 
 Everything from now on must be an extension of the existing architecture. Nothing should be rebuilt from scratch unless explicitly requested.
