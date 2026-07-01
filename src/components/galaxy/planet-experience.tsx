@@ -8,6 +8,7 @@ import { PLANET_POSITIONS } from './positions';
 import type { PlanetInfo, Protocol } from './planet-data';
 import { useGalaxyStore } from '@/stores/galaxy-store';
 import { useViewStore } from '@/stores/view-store';
+import { getPlanetUrl, getProtocolUrl, openExternal } from '@/lib/explore-links';
 
 export function PlanetExperience({ planetData }: { planetData: Record<string, PlanetInfo> }) {
   const focused = useGalaxyStore((s) => s.focused);
@@ -21,7 +22,7 @@ export function PlanetExperience({ planetData }: { planetData: Record<string, Pl
 
   return (
     <group position={[planetPos.pos[0], planetPos.pos[1], planetPos.pos[2]]}>
-      <InfoLayer data={data} />
+      <InfoLayer data={data} planetName={focused} />
       <ProtocolOrbits protocols={data.protocols} planetSize={planetPos.size} />
     </group>
   );
@@ -29,7 +30,7 @@ export function PlanetExperience({ planetData }: { planetData: Record<string, Pl
 
 // Floating holographic AR card beside the planet — Task 8: premium info card
 // with a visual pointer connecting it back to the body it describes.
-function InfoLayer({ data }: { data: PlanetInfo }) {
+function InfoLayer({ data, planetName }: { data: PlanetInfo; planetName: string }) {
   const ref = useRef<HTMLDivElement>(null);
   const setMode = useViewStore((s) => s.setMode);
 
@@ -76,20 +77,37 @@ function InfoLayer({ data }: { data: PlanetInfo }) {
             <StatLine label="PROTOCOLS" value={String(data.protocolCount)} />
           </div>
 
-          <button
-            onClick={() => setMode('list')}
-            style={{
-              width: '100%', pointerEvents: 'auto', cursor: 'pointer',
-              background: 'rgba(246,160,77,0.1)',
-              border: '1px solid rgba(246,160,77,0.3)',
-              borderRadius: '8px', padding: '7px 0',
-              fontSize: '12px', fontWeight: 600, letterSpacing: '0.08em',
-              color: 'rgba(246,160,77,0.9)',
-              transition: 'background 0.2s ease, border-color 0.2s ease',
-            }}
-          >
-            EXPLORE →
-          </button>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button
+              onClick={() => openExternal(getPlanetUrl(planetName))}
+              style={{
+                flex: 1, pointerEvents: 'auto', cursor: 'pointer',
+                background: 'rgba(246,160,77,0.1)',
+                border: '1px solid rgba(246,160,77,0.3)',
+                borderRadius: '8px', padding: '7px 0',
+                fontSize: '12px', fontWeight: 600, letterSpacing: '0.08em',
+                color: 'rgba(246,160,77,0.9)',
+                transition: 'background 0.2s ease, border-color 0.2s ease',
+              }}
+            >
+              EXPLORE ↗
+            </button>
+            <button
+              onClick={() => setMode('list')}
+              title="View all opportunities"
+              style={{
+                pointerEvents: 'auto', cursor: 'pointer',
+                background: 'none',
+                border: '1px solid rgba(245,240,235,0.16)',
+                borderRadius: '8px', padding: '7px 12px',
+                fontSize: '12px', fontWeight: 600,
+                color: 'rgba(245,240,235,0.55)',
+                transition: 'color 0.2s ease, border-color 0.2s ease',
+              }}
+            >
+              ☰
+            </button>
+          </div>
         </div>
       </div>
     </Html>
@@ -247,6 +265,20 @@ function ProtocolNode({ protocol, index, total, orbitRadius, isSelected, anySele
                 }} />
               ))}
             </div>
+
+            <button
+              onClick={() => openExternal(protocol.poolUrl || getProtocolUrl(protocol.name))}
+              style={{
+                width: '100%', marginTop: '10px', pointerEvents: 'auto', cursor: 'pointer',
+                background: 'rgba(246,160,77,0.1)',
+                border: '1px solid rgba(246,160,77,0.3)',
+                borderRadius: '6px', padding: '6px 0',
+                fontSize: '11px', fontWeight: 600, letterSpacing: '0.08em',
+                color: 'rgba(246,160,77,0.9)',
+              }}
+            >
+              EXPLORE {protocol.name} ↗
+            </button>
           </div>
         </Html>
       )}

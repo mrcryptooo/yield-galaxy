@@ -5,6 +5,7 @@ import { useFrame } from '@react-three/fiber';
 import { Billboard, useTexture, Html } from '@react-three/drei';
 import * as THREE from 'three';
 import { STATION_POSITIONS } from './positions';
+import { getProtocolUrl, openExternal } from '@/lib/explore-links';
 
 const TEXTURES: Record<string, string> = {
   Kamino: '/assets/stations/kamino-station.webp',
@@ -83,7 +84,12 @@ function Station({ name }: { name: keyof typeof STATION_POSITIONS }) {
       <pointLight ref={lightRef} color={id.light} intensity={id.lightIntensity} distance={8} />
 
       <Billboard follow lockX={false} lockY={false} lockZ={false}>
-        <mesh ref={spinRef}>
+        <mesh
+          ref={spinRef}
+          onClick={(e) => { e.stopPropagation(); openExternal(getProtocolUrl(name)); }}
+          onPointerOver={() => { document.body.style.cursor = 'pointer'; }}
+          onPointerOut={() => { document.body.style.cursor = 'auto'; }}
+        >
           <planeGeometry args={[spriteSize, spriteSize]} />
           <meshBasicMaterial map={texture} transparent alphaTest={0.02} toneMapped={false} opacity={0.97} />
         </mesh>
@@ -129,7 +135,7 @@ function Station({ name }: { name: keyof typeof STATION_POSITIONS }) {
             color: 'rgba(245,240,235,0.4)',
             marginTop: '2px', textTransform: 'uppercase',
           }}>
-            Station
+            Station · Explore ↗
           </div>
         </div>
       </Html>

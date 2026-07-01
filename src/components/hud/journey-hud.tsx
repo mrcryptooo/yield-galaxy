@@ -39,54 +39,94 @@ export function JourneyHud({ planetData }: { planetData: Record<string, PlanetIn
       gap: '10px',
       padding: '18px 26px',
     }}>
-      {/* Timeline */}
+      {/* Mission header */}
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px', marginBottom: '2px' }}>
+        <span style={{
+          fontSize: '10px', fontWeight: 700, letterSpacing: '0.2em',
+          color: 'rgba(246,160,77,0.5)',
+          fontFamily: 'var(--font-geist-mono), monospace',
+        }}>
+          MISSION
+        </span>
+        <span style={{
+          fontSize: 'var(--fs-title)', fontWeight: 600,
+          letterSpacing: '0.02em',
+          color: 'rgba(246,160,77,0.95)',
+          textShadow: '0 0 20px rgba(246,160,77,0.25)',
+        }}>
+          {activeRoute.template.name}
+        </span>
+      </div>
+
+      {/* Objectives — completed get an animated checkmark, current is
+          highlighted and glowing, future objectives remain visually locked */}
       <div style={{
         display: 'flex',
-        alignItems: 'center',
+        alignItems: 'flex-start',
         gap: '0px',
       }}>
         {activeRoute.nodes.map((node, i) => {
           const isCompleted = i < activeRoute.currentStep || completed;
           const isCurrent = i === activeRoute.currentStep && !completed;
+          const isLocked = i > activeRoute.currentStep && !completed;
           return (
-            <div key={node.id} style={{ display: 'flex', alignItems: 'center' }}>
-              {/* Node dot */}
+            <div key={node.id} style={{ display: 'flex', alignItems: 'flex-start' }}>
+              {/* Objective marker */}
               <div style={{
                 position: 'relative',
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
+                width: '76px',
               }}>
                 <div style={{
-                  width: isCurrent ? '10px' : '6px',
-                  height: isCurrent ? '10px' : '6px',
+                  width: isCurrent ? '26px' : '20px',
+                  height: isCurrent ? '26px' : '20px',
                   borderRadius: '50%',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
                   background: isCompleted
-                    ? 'rgba(246,160,77,0.6)'
+                    ? 'rgba(246,160,77,0.22)'
                     : isCurrent
-                      ? 'rgba(246,160,77,0.9)'
-                      : 'rgba(245,240,235,0.12)',
-                  boxShadow: isCurrent
-                    ? '0 0 12px rgba(246,160,77,0.4), 0 0 24px rgba(246,160,77,0.15)'
+                      ? 'rgba(246,160,77,0.16)'
+                      : 'rgba(245,240,235,0.04)',
+                  border: isCurrent
+                    ? '2px solid rgba(246,160,77,0.85)'
                     : isCompleted
-                      ? '0 0 6px rgba(246,160,77,0.15)'
+                      ? '1px solid rgba(246,160,77,0.4)'
+                      : '1px solid rgba(245,240,235,0.1)',
+                  boxShadow: isCurrent
+                    ? '0 0 16px rgba(246,160,77,0.5), 0 0 30px rgba(246,160,77,0.2)'
+                    : isCompleted
+                      ? '0 0 8px rgba(246,160,77,0.2)'
                       : 'none',
-                  transition: 'all 0.6s ease',
-                }} />
+                  transition: 'all 0.6s cubic-bezier(0.16,1,0.3,1)',
+                  animation: isCompleted ? 'fadeIn 0.5s ease-out' : undefined,
+                }}>
+                  {isCompleted ? (
+                    <span style={{ fontSize: '12px', color: 'rgba(246,160,77,0.95)', fontWeight: 700 }}>✓</span>
+                  ) : isLocked ? (
+                    <span style={{ fontSize: '9px', color: 'rgba(245,240,235,0.2)' }}>🔒</span>
+                  ) : (
+                    <span style={{
+                      width: '8px', height: '8px', borderRadius: '50%',
+                      background: 'rgba(246,160,77,0.9)', display: 'block',
+                    }} />
+                  )}
+                </div>
                 {/* Label below */}
                 <span style={{
-                  position: 'absolute',
-                  top: '16px',
+                  marginTop: '8px',
+                  textAlign: 'center',
                   whiteSpace: 'nowrap',
-                  fontSize: '11px',
+                  fontSize: isCurrent ? '13px' : '11px',
                   fontFamily: 'var(--font-geist-mono), monospace',
-                  letterSpacing: '0.04em',
+                  letterSpacing: '0.03em',
                   color: isCurrent
-                    ? 'rgba(246,160,77,0.9)'
+                    ? 'rgba(246,160,77,0.95)'
                     : isCompleted
-                      ? 'rgba(245,240,235,0.55)'
-                      : 'rgba(245,240,235,0.25)',
-                  fontWeight: isCurrent ? 600 : 400,
+                      ? 'rgba(245,240,235,0.6)'
+                      : 'rgba(245,240,235,0.22)',
+                  fontWeight: isCurrent ? 700 : 500,
                   transition: 'all 0.6s ease',
                 }}>
                   {node.label}
@@ -96,11 +136,12 @@ export function JourneyHud({ planetData }: { planetData: Record<string, PlanetIn
               {/* Connector line */}
               {i < activeRoute.nodes.length - 1 && (
                 <div style={{
-                  width: '32px',
-                  height: '1px',
+                  width: '28px',
+                  height: '2px',
+                  marginTop: '13px',
                   background: isCompleted
-                    ? 'rgba(246,160,77,0.25)'
-                    : 'rgba(245,240,235,0.06)',
+                    ? 'rgba(246,160,77,0.4)'
+                    : 'rgba(245,240,235,0.08)',
                   transition: 'background 0.8s ease',
                 }} />
               )}
@@ -114,18 +155,13 @@ export function JourneyHud({ planetData }: { planetData: Record<string, PlanetIn
         display: 'flex',
         alignItems: 'center',
         gap: '16px',
-        marginTop: '10px',
+        marginTop: '14px',
+        paddingTop: '12px',
+        borderTop: '1px solid rgba(246,160,77,0.1)',
+        width: '100%',
+        justifyContent: 'center',
         pointerEvents: 'auto',
       }}>
-        {/* Route name */}
-        <span style={{
-          fontSize: 'var(--fs-caption)', fontWeight: 600,
-          letterSpacing: '0.08em',
-          color: 'rgba(246,160,77,0.7)',
-          fontFamily: 'var(--font-geist-mono), monospace',
-        }}>
-          {activeRoute.template.name.toUpperCase()}
-        </span>
 
         {/* Live data */}
         {bestProtocol && !completed && (

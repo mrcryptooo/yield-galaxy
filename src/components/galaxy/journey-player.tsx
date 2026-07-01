@@ -4,8 +4,10 @@ import { useRef, useEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { useJourneyStore } from '@/stores/journey-store';
 
-const DWELL_TIME = 3.2;
-const FLY_TIME = 2.0;
+// Cinematic pacing: longer dwell at each destination, slightly slower travel,
+// so a mission reads as a guided tour rather than a technical checklist.
+const DWELL_TIME = 4.6;
+const FLY_TIME = 2.6;
 
 export function JourneyPlayer() {
   const activeRoute = useJourneyStore((s) => s.activeRoute);

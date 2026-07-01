@@ -15,6 +15,7 @@ import { useYields } from '@/hooks/use-yields';
 import { buildPlanetData } from '@/lib/build-planet-data';
 import { formatApy } from '@/lib/format';
 import { FALLBACK_PLANET_DATA } from '@/components/galaxy/planet-data';
+import { SOURCE_DISPLAY_NAMES } from '@/lib/constants';
 
 const GalaxyScene = lazy(() =>
   import('@/components/galaxy/galaxy-scene').then((m) => ({ default: m.GalaxyScene }))
@@ -58,6 +59,16 @@ function HomeContent() {
     ];
   }, [opportunities]);
 
+  // Best current opportunity by composite score — Captain always has a
+  // concrete recommendation ready as its default line, instead of a generic
+  // status message with no actionable content.
+  const bestOpportunitySummary = useMemo(() => {
+    if (!opportunities || opportunities.length === 0) return undefined;
+    const best = opportunities.reduce((a, b) => (b.score > a.score ? b : a));
+    const protocol = SOURCE_DISPLAY_NAMES[best.source_id] ?? best.source_id;
+    return `${best.celestial_body} at ${protocol} leads right now at ${formatApy(best.total_apy)}.`;
+  }, [opportunities]);
+
   return (
     <>
       <Suspense
@@ -83,7 +94,7 @@ function HomeContent() {
 
       <VisorLayer>
         <NavBar />
-        <CaptainPresence destinationCount={destinationCount} />
+        <CaptainPresence destinationCount={destinationCount} bestOpportunitySummary={bestOpportunitySummary} />
         <CommsConsole signals={commsSignals} />
         <TelemetryStrip readings={telemetryReadings} />
         <RouteSelector opportunities={opportunities} />

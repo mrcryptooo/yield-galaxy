@@ -34,6 +34,7 @@ export function CommsConsole({ signals }: { signals?: CommsSignal[] }) {
         zIndex: 10,
         pointerEvents: 'none',
         padding: '16px 18px',
+        maxWidth: '230px',
         animation: 'fadeIn 0.8s ease-out',
       }}
     >

@@ -51,6 +51,7 @@ export function buildPlanetData(opportunities: Opportunity[]): Record<string, Pl
         depositApy: o.base_apy,
         borrowApy: o.reward_apy,
         updated: timeAgo(o.updated_at),
+        poolUrl: o.pool_url,
       };
     });
 

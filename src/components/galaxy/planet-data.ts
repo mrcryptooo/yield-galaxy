@@ -8,6 +8,7 @@ export interface Protocol {
   depositApy: number;
   borrowApy: number;
   updated: string;
+  poolUrl?: string | null;
 }
 
 export interface PlanetInfo {

@@ -7,6 +7,7 @@ import { SOURCE_DISPLAY_NAMES } from '@/lib/constants';
 import { formatTvl, formatApy } from '@/lib/format';
 import { useGalaxyStore } from '@/stores/galaxy-store';
 import { useViewStore } from '@/stores/view-store';
+import { getOpportunityUrl, openExternal } from '@/lib/explore-links';
 
 type SortKey = 'score' | 'total_apy' | 'tvl' | 'risk_grade' | 'source_id';
 
@@ -49,7 +50,13 @@ export function ListView({ opportunities }: { opportunities?: Opportunity[] }) {
     else { setSortKey(key); setSortAsc(false); }
   };
 
-  const explore = (opp: Opportunity) => {
+  // Real Explore action: opens the actual protocol/pool destination in a new
+  // tab. Separate from viewInGalaxy, which keeps the existing in-app jump.
+  const explore = (opp: Opportunity, protocol: string) => {
+    openExternal(getOpportunityUrl(opp, protocol));
+  };
+
+  const viewInGalaxy = (opp: Opportunity) => {
     if (opp.celestial_type === 'planet') {
       const name = opp.celestial_body as 'USX' | 'eUSX' | 'SLX' | 'stSLX';
       setFocused(name);
@@ -192,11 +199,13 @@ export function ListView({ opportunities }: { opportunities?: Opportunity[] }) {
                 {opp.celestial_body !== protocol ? `${opp.celestial_body} → ${protocol}` : protocol} · {opp.strategy}
               </div>
 
-              {/* Explore */}
-              {opp.celestial_type === 'planet' ? (
+              {/* Actions: real external Explore always available; planets
+                  also get a secondary in-app "View in Galaxy" jump. */}
+              <div style={{ display: 'flex', gap: '8px' }}>
                 <button
-                  onClick={() => explore(opp)}
+                  onClick={() => explore(opp, protocol)}
                   style={{
+                    flex: 1,
                     background: 'rgba(246,160,77,0.08)',
                     border: '1px solid rgba(246,160,77,0.22)',
                     borderRadius: '8px',
@@ -217,17 +226,35 @@ export function ListView({ opportunities }: { opportunities?: Opportunity[] }) {
                     e.currentTarget.style.background = 'rgba(246,160,77,0.08)';
                   }}
                 >
-                  EXPLORE →
+                  EXPLORE ↗
                 </button>
-              ) : (
-                <span style={{
-                  fontSize: 'var(--fs-micro)', color: 'rgba(245,240,235,0.3)',
-                  fontFamily: 'var(--font-geist-mono), monospace',
-                  textAlign: 'center', textTransform: 'uppercase', letterSpacing: '0.1em',
-                }}>
-                  {opp.celestial_type}
-                </span>
-              )}
+                {opp.celestial_type === 'planet' && (
+                  <button
+                    onClick={() => viewInGalaxy(opp)}
+                    title="View in Galaxy"
+                    style={{
+                      background: 'none',
+                      border: '1px solid rgba(245,240,235,0.14)',
+                      borderRadius: '8px',
+                      padding: '8px 12px',
+                      fontSize: 'var(--fs-caption)', fontWeight: 600,
+                      color: 'rgba(245,240,235,0.55)',
+                      cursor: 'pointer',
+                      transition: 'border-color 0.2s ease, color 0.2s ease',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.borderColor = 'rgba(245,240,235,0.35)';
+                      e.currentTarget.style.color = 'rgba(245,240,235,0.9)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.borderColor = 'rgba(245,240,235,0.14)';
+                      e.currentTarget.style.color = 'rgba(245,240,235,0.55)';
+                    }}
+                  >
+                    ✦
+                  </button>
+                )}
+              </div>
             </div>
           );
         })}

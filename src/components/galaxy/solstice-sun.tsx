@@ -1,19 +1,32 @@
 'use client';
 
-import { useRef } from 'react';
+import { useRef, useMemo, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { Billboard, useTexture } from '@react-three/drei';
+import { Html, useTexture } from '@react-three/drei';
 import * as THREE from 'three';
+import { SUN_URL, openExternal } from '@/lib/explore-links';
+
+// Logo decals wrapped around the sphere's surface (not billboard-locked) so
+// the mark rotates WITH the star and reads as part of its surface. Spaced
+// 90 degrees apart around the equator so at least one decal is always facing
+// broadly toward the camera regardless of viewing angle or rotation phase.
+const DECAL_ANGLES = [0, Math.PI * 0.5, Math.PI, Math.PI * 1.5];
 
 export function SolsticeSun() {
+  const [hovered, setHovered] = useState(false);
+  const groupRef = useRef<THREE.Group>(null);
   const coreRef = useRef<THREE.Mesh>(null);
   const coronaRef = useRef<THREE.Mesh>(null);
   const heatRef = useRef<THREE.Mesh>(null);
-  const logoRef = useRef<THREE.Mesh>(null);
   const rayRef = useRef<THREE.Mesh>(null);
 
   const texture = useTexture('/assets/galaxy/solstice-sun.png');
   texture.colorSpace = THREE.SRGBColorSpace;
+
+  const decalPositions = useMemo(() => DECAL_ANGLES.map((a) => ({
+    position: [Math.sin(a) * 3.54, 0, Math.cos(a) * 3.54] as [number, number, number],
+    rotationY: a,
+  })), []);
 
   useFrame(({ clock }) => {
     const t = clock.elapsedTime;
@@ -21,16 +34,12 @@ export function SolsticeSun() {
     if (coreRef.current) {
       const breathe = 1 + Math.sin(t * 0.3) * 0.03 + Math.sin(t * 0.77) * 0.015;
       coreRef.current.scale.setScalar(breathe);
-      coreRef.current.rotation.y += 0.0016;
     }
 
-    // Billboard-locked logo plate — always faces the camera, so the Solstice
-    // mark never rotates out of view no matter how the textured sphere spins.
-    if (logoRef.current) {
-      const pulse = 1 + Math.sin(t * 0.4) * 0.02;
-      logoRef.current.scale.setScalar(pulse);
-      const mat = logoRef.current.material as THREE.MeshBasicMaterial;
-      mat.opacity = 0.9 + Math.sin(t * 0.6) * 0.08;
+    // The whole group (sphere + wrapped decals) rotates together, so the
+    // decals stay fixed to the surface instead of sliding across it.
+    if (groupRef.current) {
+      groupRef.current.rotation.y += 0.0016;
     }
 
     if (rayRef.current) {
@@ -61,20 +70,38 @@ export function SolsticeSun() {
       <pointLight color="#EAB0BE" intensity={0.8} distance={25} position={[0, -4, 2]} />
       <pointLight color="#F7B36C" intensity={0.5} distance={20} position={[3, 0, -3]} />
 
-      {/* Core — textured sphere with sun artwork, true volumetric rotation */}
-      <mesh ref={coreRef}>
-        <sphereGeometry args={[3.5, 64, 64]} />
-        <meshBasicMaterial map={texture} toneMapped={false} />
-      </mesh>
-
-      {/* Logo plate — billboard-locked so the Solstice mark reads from every
-          viewing angle regardless of the core sphere's rotation */}
-      <Billboard follow lockX={false} lockY={false} lockZ={false}>
-        <mesh ref={logoRef} position={[0, 0, 0.02]}>
-          <circleGeometry args={[2.55, 48]} />
-          <meshBasicMaterial map={texture} transparent opacity={0.9} toneMapped={false} depthWrite={false} />
+      {/* Core — textured sphere with sun artwork, true volumetric rotation.
+          Logo decals are children so they rotate WITH the surface: true 3D,
+          no billboard feeling. Four decals 90° apart guarantee the mark is
+          visible (wrapped around, not stuck to the camera) from any angle. */}
+      <group ref={groupRef}>
+        <mesh
+          ref={coreRef}
+          onClick={(e) => { e.stopPropagation(); openExternal(SUN_URL); }}
+          onPointerOver={() => { setHovered(true); document.body.style.cursor = 'pointer'; }}
+          onPointerOut={() => { setHovered(false); document.body.style.cursor = 'auto'; }}
+        >
+          <sphereGeometry args={[3.5, 64, 64]} />
+          <meshBasicMaterial map={texture} toneMapped={false} />
         </mesh>
-      </Billboard>
+
+        {decalPositions.map((d, i) => (
+          <mesh key={i} position={d.position} rotation={[0, d.rotationY, 0]}>
+            <circleGeometry args={[1.7, 48]} />
+            <meshBasicMaterial map={texture} transparent opacity={0.85} toneMapped={false} depthWrite={false} polygonOffset polygonOffsetFactor={-1} />
+          </mesh>
+        ))}
+
+        {hovered && (
+          <Html center distanceFactor={20} style={{ pointerEvents: 'none' }} position={[0, -4.6, 0]}>
+            <div className="glass-panel" style={{ padding: '6px 16px', textAlign: 'center' }}>
+              <div style={{ fontSize: 'var(--fs-caption)', fontWeight: 600, color: 'rgba(246,160,77,0.9)' }}>
+                Solstice ↗
+              </div>
+            </div>
+          </Html>
+        )}
+      </group>
 
       {/* Solar rays — rotating god-ray plate */}
       <mesh ref={rayRef}>

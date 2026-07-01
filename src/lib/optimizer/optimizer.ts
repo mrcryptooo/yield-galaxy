@@ -62,13 +62,21 @@ export function optimize(
     });
   }
 
-  candidates.sort((a, b) => compareRoutes(a.score, b.score));
+  // findPaths can surface the same node sequence more than once when several
+  // opportunities create parallel edges between the same two nodes (e.g. two
+  // USX-Kamino pools). resolveEdges always picks the single best edge per hop
+  // regardless of which parallel edge the DFS took to get there, so those
+  // candidates end up fully identical — same id, same score, same everything.
+  // Dedupe by id (React key + genuine route identity) before ranking.
+  const deduped = Array.from(new Map(candidates.map((c) => [c.id, c])).values());
+
+  deduped.sort((a, b) => compareRoutes(a.score, b.score));
 
   return {
-    routes: candidates.slice(0, 8),
+    routes: deduped.slice(0, 8),
     constraints,
     totalCandidates: rawPaths.length,
-    totalValid: candidates.length,
+    totalValid: deduped.length,
   };
 }
 

@@ -19,28 +19,32 @@ export function TelemetryStrip({ readings }: { readings?: TelemetryReading[] }) 
     { label: 'SCAN', value: '6 < 0.5%' },
   ];
 
+  // Part of the right HUD rail (safe layout system): Comms (top) → Routes
+  // (middle) → Telemetry (bottom-anchored so it can never collide with the
+  // variable-height Routes panel above it).
   return (
     <div
       className="glass-panel"
       style={{
         position: 'fixed',
         bottom: '20px',
-        left: '50%',
-        transform: 'translateX(-50%)',
+        right: '20px',
         display: 'flex',
-        alignItems: 'center',
-        gap: '22px',
+        flexDirection: 'column',
+        alignItems: 'flex-end',
+        gap: '8px',
         zIndex: 10,
         pointerEvents: 'none',
-        padding: '10px 22px',
+        padding: '16px 18px',
+        maxWidth: '230px',
         animation: 'fadeIn 0.8s ease-out',
       }}
     >
+      <span className="hud-label" style={{ marginBottom: '2px' }}>
+        Telemetry
+      </span>
       {items.map((r, i) => (
-        <span key={i} style={{ display: 'flex', alignItems: 'center', gap: '22px' }}>
-          {i > 0 && <Dot />}
-          <Reading label={r.label} value={r.value} accent={r.accent} />
-        </span>
+        <Reading key={i} label={r.label} value={r.value} accent={r.accent} />
       ))}
     </div>
   );
@@ -48,7 +52,7 @@ export function TelemetryStrip({ readings }: { readings?: TelemetryReading[] }) 
 
 function Reading({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
   return (
-    <span style={{ pointerEvents: 'auto', cursor: 'default' }}>
+    <span style={{ pointerEvents: 'auto', cursor: 'default', textAlign: 'right' }}>
       <span style={{
         fontFamily: 'var(--font-geist-mono), monospace',
         fontSize: 'var(--fs-micro)',
@@ -70,17 +74,5 @@ function Reading({ label, value, accent }: { label: string; value: string; accen
         {value}
       </span>
     </span>
-  );
-}
-
-function Dot() {
-  return (
-    <span style={{
-      width: '2px',
-      height: '2px',
-      borderRadius: '50%',
-      background: 'rgba(246,160,77,0.15)',
-      display: 'inline-block',
-    }} />
   );
 }

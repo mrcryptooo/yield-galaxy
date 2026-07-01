@@ -53,7 +53,7 @@ export function RouteSelector({ opportunities }: { opportunities?: Opportunity[]
   return (
     <div className="glass-panel" style={{
       position: 'fixed',
-      top: '68%',
+      top: '58%',
       right: '20px',
       transform: 'translateY(-50%)',
       display: 'flex',
@@ -64,6 +64,8 @@ export function RouteSelector({ opportunities }: { opportunities?: Opportunity[]
       pointerEvents: 'none',
       padding: '16px 18px',
       maxWidth: '230px',
+      maxHeight: '40vh',
+      overflowY: 'auto',
       animation: 'fadeIn 0.8s ease-out',
     }}>
       <span className="hud-label" style={{ marginBottom: '2px' }}>

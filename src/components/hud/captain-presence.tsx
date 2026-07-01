@@ -6,6 +6,8 @@ import { useGalaxyStore } from '@/stores/galaxy-store';
 import { useJourneyStore } from '@/stores/journey-store';
 import { useCaptainStore } from '@/stores/captain-store';
 import { useExecutionStore } from '@/stores/execution-store';
+import { useOptimizerStore } from '@/stores/optimizer-store';
+import { useViewStore } from '@/stores/view-store';
 import { CAPTAIN_LINES } from '@/components/galaxy/focus-cameras';
 import { CAPTAIN_PROTOCOL_LINES } from '@/components/galaxy/planet-data';
 import { CAPTAIN_JOURNEY_LINES } from '@/lib/route-templates';
@@ -37,7 +39,7 @@ function getCaptainImage(captainState: string, focused: string | null, activeRou
   return CAPTAIN_IMAGES.default;
 }
 
-export function CaptainPresence({ destinationCount }: { destinationCount?: number }) {
+export function CaptainPresence({ destinationCount, bestOpportunitySummary }: { destinationCount?: number; bestOpportunitySummary?: string }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const frameRef = useRef(0);
   const focused = useGalaxyStore((s) => s.focused);
@@ -50,22 +52,52 @@ export function CaptainPresence({ destinationCount }: { destinationCount?: numbe
   const briefing = useCaptainStore((s) => s.briefing);
   const executionSpeech = useExecutionStore((s) => s.executionSpeech);
   const executionPlan = useExecutionStore((s) => s.plan);
+  const viewMode = useViewStore((s) => s.mode);
+  const riskPreference = useOptimizerStore((s) => s.riskPreference);
 
-  // Idle dialogue: fires every 20-40s. The if/else priority chain below only
-  // ever surfaces it as the last resort, after focus/route/protocol/hover/briefing.
+  // Idle dialogue: fires every 20-40s, never repeating the immediately
+  // previous line. The if/else priority chain below only ever surfaces it as
+  // the last resort, after focus/route/protocol/hover/briefing.
   const [idleLine, setIdleLine] = useState<string | null>(null);
+  const lastIdleIndex = useRef(-1);
   useEffect(() => {
     let timeout: ReturnType<typeof setTimeout>;
     const schedule = () => {
       const delay = 20000 + Math.random() * 20000;
       timeout = setTimeout(() => {
-        setIdleLine(IDLE_DIALOGUE[Math.floor(Math.random() * IDLE_DIALOGUE.length)]);
+        let next = Math.floor(Math.random() * IDLE_DIALOGUE.length);
+        if (IDLE_DIALOGUE.length > 1) {
+          while (next === lastIdleIndex.current) next = Math.floor(Math.random() * IDLE_DIALOGUE.length);
+        }
+        lastIdleIndex.current = next;
+        setIdleLine(IDLE_DIALOGUE[next]);
         schedule();
       }, delay);
     };
     schedule();
     return () => clearTimeout(timeout);
   }, []);
+
+  // Transient reactions: brief acknowledgement when the user switches view or
+  // changes the optimizer's risk preference, then fades back to whatever the
+  // priority chain would otherwise show.
+  const [transientLine, setTransientLine] = useState<string | null>(null);
+  const mountedView = useRef(false);
+  useEffect(() => {
+    if (!mountedView.current) { mountedView.current = true; return; }
+    setTransientLine(viewMode === 'list' ? 'Switching to the list — every opportunity, ranked.' : 'Back to the galaxy view.');
+    const t = setTimeout(() => setTransientLine(null), 4000);
+    return () => clearTimeout(t);
+  }, [viewMode]);
+
+  const mountedRisk = useRef(false);
+  useEffect(() => {
+    if (!mountedRisk.current) { mountedRisk.current = true; return; }
+    const label = riskPreference === 'conservative' ? 'the safest routes' : riskPreference === 'aggressive' ? 'maximum yield' : 'a balanced path';
+    setTransientLine(`Recalculating for ${label}.`);
+    const t = setTimeout(() => setTransientLine(null), 4000);
+    return () => clearTimeout(t);
+  }, [riskPreference]);
 
   let speech: string;
   let stateLabel: string = '';
@@ -99,10 +131,14 @@ export function CaptainPresence({ destinationCount }: { destinationCount?: numbe
     else if (captainSpeech.tone === 'confident') stateLabel = 'ANALYSIS';
   } else if (hovered) {
     speech = `Take a closer look at ${hovered}?`;
+  } else if (transientLine) {
+    speech = transientLine;
   } else if (idleLine) {
     speech = idleLine;
   } else {
-    speech = `Exploring Yield Galaxy. ${destinationCount ?? 16} destinations detected.`;
+    speech = bestOpportunitySummary
+      ? `Exploring Yield Galaxy. ${bestOpportunitySummary}`
+      : `Exploring Yield Galaxy. ${destinationCount ?? 16} destinations detected.`;
   }
 
   const captainImage = getCaptainImage(
