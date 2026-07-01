@@ -1,19 +1,16 @@
 'use client';
 
-import { useRef, useMemo, useState } from 'react';
+import { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { Html, useTexture } from '@react-three/drei';
+import { useTexture } from '@react-three/drei';
 import * as THREE from 'three';
-import { SUN_URL, openExternal } from '@/lib/explore-links';
 
-// Logo decals wrapped around the sphere's surface (not billboard-locked) so
-// the mark rotates WITH the star and reads as part of its surface. Spaced
-// 90 degrees apart around the equator so at least one decal is always facing
-// broadly toward the camera regardless of viewing angle or rotation phase.
-const DECAL_ANGLES = [0, Math.PI * 0.5, Math.PI, Math.PI * 1.5];
+// Single logo decal wrapped onto the sphere's surface (not billboard-locked)
+// so the mark rotates WITH the star and reads as part of its surface —
+// exactly one Solstice mark, no billboard, per explicit sign-off.
+const DECAL_ANGLES = [0];
 
 export function SolsticeSun() {
-  const [hovered, setHovered] = useState(false);
   const groupRef = useRef<THREE.Group>(null);
   const coreRef = useRef<THREE.Mesh>(null);
   const coronaRef = useRef<THREE.Mesh>(null);
@@ -71,16 +68,11 @@ export function SolsticeSun() {
       <pointLight color="#F7B36C" intensity={0.5} distance={20} position={[3, 0, -3]} />
 
       {/* Core — textured sphere with sun artwork, true volumetric rotation.
-          Logo decals are children so they rotate WITH the surface: true 3D,
-          no billboard feeling. Four decals 90° apart guarantee the mark is
-          visible (wrapped around, not stuck to the camera) from any angle. */}
+          The logo decal is a child so it rotates WITH the surface: true 3D,
+          no billboard feeling. Galaxy-mode objects are never clickable links —
+          Explore only exists inside List View. */}
       <group ref={groupRef}>
-        <mesh
-          ref={coreRef}
-          onClick={(e) => { e.stopPropagation(); openExternal(SUN_URL); }}
-          onPointerOver={() => { setHovered(true); document.body.style.cursor = 'pointer'; }}
-          onPointerOut={() => { setHovered(false); document.body.style.cursor = 'auto'; }}
-        >
+        <mesh ref={coreRef}>
           <sphereGeometry args={[3.5, 64, 64]} />
           <meshBasicMaterial map={texture} toneMapped={false} />
         </mesh>
@@ -91,16 +83,6 @@ export function SolsticeSun() {
             <meshBasicMaterial map={texture} transparent opacity={0.85} toneMapped={false} depthWrite={false} polygonOffset polygonOffsetFactor={-1} />
           </mesh>
         ))}
-
-        {hovered && (
-          <Html center distanceFactor={20} style={{ pointerEvents: 'none' }} position={[0, -4.6, 0]}>
-            <div className="glass-panel" style={{ padding: '6px 16px', textAlign: 'center' }}>
-              <div style={{ fontSize: 'var(--fs-caption)', fontWeight: 600, color: 'rgba(246,160,77,0.9)' }}>
-                Solstice ↗
-              </div>
-            </div>
-          </Html>
-        )}
       </group>
 
       {/* Solar rays — rotating god-ray plate */}

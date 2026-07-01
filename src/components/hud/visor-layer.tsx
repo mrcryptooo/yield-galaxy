@@ -27,8 +27,13 @@ export function VisorLayer({ children }: { children: ReactNode }) {
     return () => cancelAnimationFrame(frameRef.current);
   }, []);
 
+  // VisorLayer establishes its own stacking context (position:fixed + z-index),
+  // so any z-index set on its children (e.g. NavBar) only matters relative to
+  // its OTHER children — the whole subtree still competes against siblings
+  // like ListView using THIS z-index. Must stay above ListView's z-index (15)
+  // so the Galaxy/List switch is never covered while scrolling list content.
   return (
-    <div ref={ref} style={{ position: 'fixed', inset: 0, zIndex: 10, pointerEvents: 'none' }}>
+    <div ref={ref} style={{ position: 'fixed', inset: 0, zIndex: 16, pointerEvents: 'none' }}>
       {children}
     </div>
   );

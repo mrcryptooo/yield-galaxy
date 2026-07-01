@@ -10,12 +10,15 @@ import { TelemetryStrip } from '@/components/hud/telemetry-strip';
 import { JourneyHud } from '@/components/hud/journey-hud';
 import { RouteSelector } from '@/components/hud/route-selector';
 import { Branding } from '@/components/hud/branding';
+import { PlanetInfoPanel } from '@/components/hud/planet-info-panel';
+import { LeftRail, RightRail, BottomRail } from '@/components/hud/hud-rails';
 import { ListView } from '@/components/list/list-view';
 import { useYields } from '@/hooks/use-yields';
 import { buildPlanetData } from '@/lib/build-planet-data';
 import { formatApy } from '@/lib/format';
 import { FALLBACK_PLANET_DATA } from '@/components/galaxy/planet-data';
 import { SOURCE_DISPLAY_NAMES } from '@/lib/constants';
+import { useJourneyStore } from '@/stores/journey-store';
 
 const GalaxyScene = lazy(() =>
   import('@/components/galaxy/galaxy-scene').then((m) => ({ default: m.GalaxyScene }))
@@ -25,6 +28,7 @@ const queryClient = new QueryClient();
 
 function HomeContent() {
   const { data: opportunities } = useYields();
+  const activeRoute = useJourneyStore((s) => s.activeRoute);
 
   const planetData = useMemo(() => {
     if (!opportunities || opportunities.length === 0) return FALLBACK_PLANET_DATA;
@@ -90,15 +94,31 @@ function HomeContent() {
 
       <ListView opportunities={opportunities} />
 
-      <Branding />
-
+      {/* Safe layout system: NavBar owns top-center; LEFT/RIGHT/BOTTOM rails
+          own their protected regions; the galaxy owns the center. Nothing
+          renders outside these regions, so panels cannot overlap. */}
       <VisorLayer>
         <NavBar />
-        <CaptainPresence destinationCount={destinationCount} bestOpportunitySummary={bestOpportunitySummary} />
-        <CommsConsole signals={commsSignals} />
-        <TelemetryStrip readings={telemetryReadings} />
-        <RouteSelector opportunities={opportunities} />
-        <JourneyHud planetData={planetData} />
+
+        <LeftRail>
+          <Branding />
+          <PlanetInfoPanel planetData={planetData} />
+          <CaptainPresence destinationCount={destinationCount} bestOpportunitySummary={bestOpportunitySummary} planetData={planetData} />
+        </LeftRail>
+
+        {!activeRoute && (
+          <RightRail>
+            <CommsConsole signals={commsSignals} />
+            <RouteSelector opportunities={opportunities} />
+            <TelemetryStrip readings={telemetryReadings} />
+          </RightRail>
+        )}
+
+        {activeRoute && (
+          <BottomRail>
+            <JourneyHud planetData={planetData} />
+          </BottomRail>
+        )}
       </VisorLayer>
     </>
   );

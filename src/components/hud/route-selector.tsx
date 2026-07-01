@@ -50,23 +50,19 @@ export function RouteSelector({ opportunities }: { opportunities?: Opportunity[]
 
   if (activeRoute) return null;
 
+  // Lives inside <RightRail> (safe layout system) — no longer self-positioned.
   return (
-    <div className="glass-panel" style={{
-      position: 'fixed',
-      top: '58%',
-      right: '20px',
-      transform: 'translateY(-50%)',
+    <div style={{
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'flex-end',
       gap: '8px',
-      zIndex: 10,
       pointerEvents: 'none',
-      padding: '16px 18px',
-      maxWidth: '230px',
+      width: '100%',
       maxHeight: '40vh',
       overflowY: 'auto',
-      animation: 'fadeIn 0.8s ease-out',
+      borderTop: '1px solid rgba(246,160,77,0.1)',
+      paddingTop: '14px',
     }}>
       <span className="hud-label" style={{ marginBottom: '2px' }}>
         Routes

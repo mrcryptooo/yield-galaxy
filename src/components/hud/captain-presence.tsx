@@ -10,6 +10,7 @@ import { useOptimizerStore } from '@/stores/optimizer-store';
 import { useViewStore } from '@/stores/view-store';
 import { CAPTAIN_LINES } from '@/components/galaxy/focus-cameras';
 import { CAPTAIN_PROTOCOL_LINES } from '@/components/galaxy/planet-data';
+import type { PlanetInfo } from '@/components/galaxy/planet-data';
 import { CAPTAIN_JOURNEY_LINES } from '@/lib/route-templates';
 
 // Random idle chatter — only ever shown when nothing else has anything to say
@@ -22,7 +23,23 @@ const IDLE_DIALOGUE = [
   "Systems nominal. Standing by for your next move.",
   "I like this view. Feels like home.",
   "Let me know if you want the safest path or the fastest one.",
+  "Hover a planet or station — I'll tell you what I know.",
+  "Yields shift by the minute out here. Worth another scan.",
+  "Try the optimizer — I'll find you the smartest path.",
+  "Every station runs its own risk profile. Ask before you dock.",
+  "I've charted every route in this sector. Just say the word.",
+  "Patience pays out here — literally.",
 ];
+
+// Station explanations for hover — mirrors CAPTAIN_LINES (planets) so every
+// hoverable body in the galaxy gets a real explanation, not a placeholder.
+const STATION_LINES: Record<string, string> = {
+  Kamino: 'Kamino — the lending hub. Deposit, borrow, and loop for leveraged yield.',
+  Orca: 'Orca — liquidity pools and swaps. Higher reward, impermanent loss risk.',
+  Raydium: 'Raydium — concentrated liquidity and AMM pairs. Fast, efficient, volatile.',
+  Loopscale: 'Loopscale — structured lending with tighter risk controls.',
+  Exponent: 'Exponent — where PT and YT markets live. Fixed yield or leveraged upside.',
+};
 
 const CAPTAIN_IMAGES: Record<string, string> = {
   idle: '/assets/captain/captain-idle.webp',
@@ -39,7 +56,7 @@ function getCaptainImage(captainState: string, focused: string | null, activeRou
   return CAPTAIN_IMAGES.default;
 }
 
-export function CaptainPresence({ destinationCount, bestOpportunitySummary }: { destinationCount?: number; bestOpportunitySummary?: string }) {
+export function CaptainPresence({ destinationCount, bestOpportunitySummary, planetData }: { destinationCount?: number; bestOpportunitySummary?: string; planetData?: Record<string, PlanetInfo> }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const frameRef = useRef(0);
   const focused = useGalaxyStore((s) => s.focused);
@@ -85,7 +102,7 @@ export function CaptainPresence({ destinationCount, bestOpportunitySummary }: { 
   const mountedView = useRef(false);
   useEffect(() => {
     if (!mountedView.current) { mountedView.current = true; return; }
-    setTransientLine(viewMode === 'list' ? 'Switching to the list — every opportunity, ranked.' : 'Back to the galaxy view.');
+    setTransientLine(viewMode === 'list' ? 'List view — every opportunity, sorted and scored side by side.' : 'Back in the galaxy. Click any body to focus it.');
     const t = setTimeout(() => setTransientLine(null), 4000);
     return () => clearTimeout(t);
   }, [viewMode]);
@@ -124,13 +141,16 @@ export function CaptainPresence({ destinationCount, bestOpportunitySummary }: { 
     const protocolSlug = selectedProtocol.split('__')[0];
     speech = CAPTAIN_PROTOCOL_LINES[protocolSlug] ?? 'Scanning this protocol...';
   } else if (focused) {
-    speech = CAPTAIN_LINES[focused] ?? 'Interesting choice, Explorer.';
+    // Explain the planet AND why its numbers matter, not just flavor text.
+    const info = planetData?.[focused];
+    const base = CAPTAIN_LINES[focused] ?? 'Interesting choice, Explorer.';
+    speech = info ? `${base} TVL ${info.tvl}, best yield ${info.avgApy} across ${info.protocolCount} protocol${info.protocolCount === 1 ? '' : 's'}.` : base;
   } else if (captainSpeech) {
     speech = captainSpeech.text;
     if (captainSpeech.tone === 'cautious') stateLabel = 'ALERT';
     else if (captainSpeech.tone === 'confident') stateLabel = 'ANALYSIS';
   } else if (hovered) {
-    speech = `Take a closer look at ${hovered}?`;
+    speech = CAPTAIN_LINES[hovered] ?? STATION_LINES[hovered] ?? `Take a closer look at ${hovered}?`;
   } else if (transientLine) {
     speech = transientLine;
   } else if (idleLine) {
@@ -177,10 +197,13 @@ export function CaptainPresence({ destinationCount, bestOpportunitySummary }: { 
     return () => cancelAnimationFrame(frameRef.current);
   }, []);
 
+  // Lives inside <LeftRail> (safe layout system) — no longer self-positioned.
   return (
     <div style={{
-      position: 'fixed', bottom: '32px', left: '8px',
-      zIndex: 10, pointerEvents: 'none',
+      pointerEvents: 'none',
+      borderTop: '1px solid rgba(246,160,77,0.1)',
+      paddingTop: '14px',
+      marginTop: 'auto',
     }}>
       {/* State indicator */}
       {(isJourneyActive || hasBriefing) && stateLabel && (

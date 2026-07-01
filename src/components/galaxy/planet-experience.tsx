@@ -7,9 +7,13 @@ import * as THREE from 'three';
 import { PLANET_POSITIONS } from './positions';
 import type { PlanetInfo, Protocol } from './planet-data';
 import { useGalaxyStore } from '@/stores/galaxy-store';
-import { useViewStore } from '@/stores/view-store';
-import { getPlanetUrl, getProtocolUrl, openExternal } from '@/lib/explore-links';
 
+// Planet Info now lives in the fixed 2D Left HUD Rail (see
+// hud/planet-info-panel.tsx) instead of a 3D-positioned Html card — this is
+// part of the safe layout system: 3D-world-anchored HUD cards were a source
+// of unpredictable screen-space overlap with the 2D rails. PlanetExperience
+// now only owns the protocol orbit objects, which are galaxy content (not
+// HUD), so they stay in-world.
 export function PlanetExperience({ planetData }: { planetData: Record<string, PlanetInfo> }) {
   const focused = useGalaxyStore((s) => s.focused);
   if (!focused) return null;
@@ -22,117 +26,8 @@ export function PlanetExperience({ planetData }: { planetData: Record<string, Pl
 
   return (
     <group position={[planetPos.pos[0], planetPos.pos[1], planetPos.pos[2]]}>
-      <InfoLayer data={data} planetName={focused} />
       <ProtocolOrbits protocols={data.protocols} planetSize={planetPos.size} />
     </group>
-  );
-}
-
-// Floating holographic AR card beside the planet — Task 8: premium info card
-// with a visual pointer connecting it back to the body it describes.
-function InfoLayer({ data, planetName }: { data: PlanetInfo; planetName: string }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const setMode = useViewStore((s) => s.setMode);
-
-  return (
-    <Html
-      position={[3.5, 2, 0]}
-      distanceFactor={12}
-      style={{ pointerEvents: 'none', width: '230px' }}
-    >
-      <div ref={ref} style={{ animation: 'fadeIn 0.8s ease-out', position: 'relative', display: 'flex', alignItems: 'center' }}>
-        {/* Pointer — connects the card visually back to the planet */}
-        <div style={{
-          position: 'absolute', left: '-34px', top: '50%', width: '32px', height: '1px',
-          background: 'linear-gradient(90deg, rgba(246,160,77,0.5), rgba(246,160,77,0.05))',
-        }} />
-        <div style={{
-          position: 'absolute', left: '-36px', top: 'calc(50% - 3px)', width: '6px', height: '6px',
-          borderRadius: '50%', background: 'rgba(246,160,77,0.7)',
-          boxShadow: '0 0 10px rgba(246,160,77,0.6)',
-        }} />
-
-        <div className="glass-panel-strong" style={{ padding: '16px 18px', width: '100%' }}>
-          {/* Planet name — hero size, glowing */}
-          <div style={{
-            fontSize: 'var(--fs-title)', fontWeight: 600, letterSpacing: '0.03em',
-            color: 'rgba(246,160,77,0.95)',
-            textShadow: '0 0 24px rgba(246,160,77,0.3)',
-            marginBottom: '6px',
-          }}>
-            {data.name}
-          </div>
-
-          {/* Description */}
-          <div className="hud-body" style={{
-            fontSize: '12.5px', marginBottom: '12px', color: 'rgba(245,240,235,0.65)',
-          }}>
-            {data.description}
-          </div>
-
-          {/* Stats — holographic feel, larger and readable */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '12px' }}>
-            <StatLine label="TVL" value={data.tvl} />
-            <StatLine label="APY" value={data.avgApy} accent />
-            <StatLine label="PROTOCOLS" value={String(data.protocolCount)} />
-          </div>
-
-          <div style={{ display: 'flex', gap: '8px' }}>
-            <button
-              onClick={() => openExternal(getPlanetUrl(planetName))}
-              style={{
-                flex: 1, pointerEvents: 'auto', cursor: 'pointer',
-                background: 'rgba(246,160,77,0.1)',
-                border: '1px solid rgba(246,160,77,0.3)',
-                borderRadius: '8px', padding: '7px 0',
-                fontSize: '12px', fontWeight: 600, letterSpacing: '0.08em',
-                color: 'rgba(246,160,77,0.9)',
-                transition: 'background 0.2s ease, border-color 0.2s ease',
-              }}
-            >
-              EXPLORE ↗
-            </button>
-            <button
-              onClick={() => setMode('list')}
-              title="View all opportunities"
-              style={{
-                pointerEvents: 'auto', cursor: 'pointer',
-                background: 'none',
-                border: '1px solid rgba(245,240,235,0.16)',
-                borderRadius: '8px', padding: '7px 12px',
-                fontSize: '12px', fontWeight: 600,
-                color: 'rgba(245,240,235,0.55)',
-                transition: 'color 0.2s ease, border-color 0.2s ease',
-              }}
-            >
-              ☰
-            </button>
-          </div>
-        </div>
-      </div>
-    </Html>
-  );
-}
-
-function StatLine({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
-  return (
-    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-      <span style={{
-        fontSize: '10px', letterSpacing: '0.14em', fontWeight: 600,
-        color: 'rgba(246,160,77,0.45)',
-        fontFamily: 'var(--font-geist-mono), monospace',
-      }}>
-        {label}
-      </span>
-      <span style={{
-        fontSize: '15px', fontWeight: 500, letterSpacing: '0.01em',
-        color: accent ? 'rgba(246,160,77,0.95)' : 'rgba(245,240,235,0.85)',
-        fontFamily: 'var(--font-geist-mono), monospace',
-        textShadow: accent ? '0 0 14px rgba(246,160,77,0.3)' : 'none',
-      }}>
-        {value}
-      </span>
-    </div>
   );
 }
 
@@ -265,20 +160,6 @@ function ProtocolNode({ protocol, index, total, orbitRadius, isSelected, anySele
                 }} />
               ))}
             </div>
-
-            <button
-              onClick={() => openExternal(protocol.poolUrl || getProtocolUrl(protocol.name))}
-              style={{
-                width: '100%', marginTop: '10px', pointerEvents: 'auto', cursor: 'pointer',
-                background: 'rgba(246,160,77,0.1)',
-                border: '1px solid rgba(246,160,77,0.3)',
-                borderRadius: '6px', padding: '6px 0',
-                fontSize: '11px', fontWeight: 600, letterSpacing: '0.08em',
-                color: 'rgba(246,160,77,0.9)',
-              }}
-            >
-              EXPLORE {protocol.name} ↗
-            </button>
           </div>
         </Html>
       )}

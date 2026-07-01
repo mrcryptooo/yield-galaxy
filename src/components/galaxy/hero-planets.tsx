@@ -166,6 +166,19 @@ function Planet({ name }: { name: 'USX' | 'eUSX' | 'SLX' | 'stSLX' }) {
           <planeGeometry args={[spriteSize, spriteSize]} />
           <meshBasicMaterial map={texture} transparent alphaTest={0.02} toneMapped={false} opacity={dimmed ? soul.distanceFade * 0.6 : soul.distanceFade} />
         </mesh>
+
+        {/* USX-only: the source artwork has a decorative orbital ring baked
+            into its pixels (confirmed by inspecting the raw texture — not a
+            geometry/UV/rotation issue, since this sprite never rotates in
+            plane). A soft warm haze band sits just in front of the sprite at
+            the ring's fixed screen-relative position to reduce its contrast,
+            read as atmospheric glare rather than a masking patch. */}
+        {name === 'USX' && (
+          <mesh position={[0, -spriteSize * 0.08, 0.02]}>
+            <planeGeometry args={[spriteSize * 0.92, spriteSize * 0.22]} />
+            <meshBasicMaterial color="#FFD9A0" transparent opacity={0.1} depthWrite={false} toneMapped={false} />
+          </mesh>
+        )}
       </Billboard>
 
       {soul.haloLayers.map((layer, i) => (

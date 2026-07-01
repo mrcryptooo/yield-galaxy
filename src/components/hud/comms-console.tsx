@@ -19,25 +19,16 @@ export function CommsConsole({ signals }: { signals?: CommsSignal[] }) {
     { title: 'Harvest SLX', value: '405%', tag: 'NAV' },
   ];
 
+  // Lives inside <RightRail> (safe layout system) — no longer self-positioned.
   return (
-    <div
-      className="glass-panel"
-      style={{
-        position: 'fixed',
-        top: '26%',
-        right: '20px',
-        transform: 'translateY(-50%)',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'flex-end',
-        gap: '12px',
-        zIndex: 10,
-        pointerEvents: 'none',
-        padding: '16px 18px',
-        maxWidth: '230px',
-        animation: 'fadeIn 0.8s ease-out',
-      }}
-    >
+    <div style={{
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'flex-end',
+      gap: '12px',
+      pointerEvents: 'none',
+      width: '100%',
+    }}>
       <span className="hud-label" style={{ marginBottom: '2px' }}>
         Comms
       </span>

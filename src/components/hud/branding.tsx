@@ -2,21 +2,15 @@
 
 import Image from 'next/image';
 
+// Lives inside <LeftRail> (safe layout system) — no longer self-positioned.
 export function Branding() {
   return (
     <div
-      className="glass-panel"
       style={{
-        position: 'fixed',
-        top: '20px',
-        left: '20px',
-        zIndex: 20,
         pointerEvents: 'none',
         display: 'flex',
         alignItems: 'center',
         gap: '14px',
-        padding: '12px 20px 12px 14px',
-        animation: 'fadeIn 0.8s ease-out',
       }}
     >
       <Image

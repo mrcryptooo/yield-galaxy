@@ -25,6 +25,19 @@
   --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.45), 0 0 24px rgba(246, 160, 77, 0.05);
   --glass-blur: 18px;
   --glass-radius: 14px;
+
+  /* Safe layout system: protected HUD regions. LEFT/RIGHT rails own a fixed
+     width; BOTTOM rail is centered. Nothing may render outside these, and
+     nothing inside the galaxy may be positioned into these zones. */
+  --rail-width: 260px;
+  --rail-margin: 20px;
+  --rail-gap: 14px;
+  --rail-bg: rgba(8, 11, 20, 0.78);
+  --rail-border: rgba(246, 160, 77, 0.14);
+  /* NavBar occupies its own top-center strip (~68px tall incl. margin) — left
+     and right rails start below it so their regions never share pixels with
+     the nav's region, regardless of viewport width. */
+  --rail-top-offset: 84px;
 }
 
 body {
@@ -108,6 +121,56 @@ canvas {
   border: 1px solid var(--glass-border-strong);
   border-radius: var(--glass-radius);
   box-shadow: var(--glass-shadow);
+}
+
+/* Safe layout system — one rail container per protected region. Every HUD
+   element renders as a normal-flow child inside its rail instead of an
+   independently `position:fixed` element, so panels can never overlap: the
+   rail's own flex column stacks them, and the rail's fixed width bounds them
+   horizontally. */
+.hud-rail {
+  position: fixed;
+  z-index: 12;
+  width: var(--rail-width);
+  display: flex;
+  flex-direction: column;
+  gap: var(--rail-gap);
+  background: var(--rail-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--rail-border);
+  border-radius: var(--glass-radius);
+  box-shadow: var(--glass-shadow);
+  padding: 18px;
+  pointer-events: none;
+}
+
+.hud-rail > * {
+  pointer-events: auto;
+}
+
+.hud-rail-left {
+  top: var(--rail-top-offset);
+  left: var(--rail-margin);
+  bottom: var(--rail-margin);
+  overflow-y: auto;
+}
+
+.hud-rail-right {
+  top: var(--rail-top-offset);
+  right: var(--rail-margin);
+  bottom: var(--rail-margin);
+  align-items: flex-end;
+  overflow-y: auto;
+}
+
+.hud-rail-bottom {
+  bottom: var(--rail-margin);
+  left: 50%;
+  transform: translateX(-50%);
+  width: auto;
+  min-width: 420px;
+  align-items: center;
 }
 
 .glass-card {

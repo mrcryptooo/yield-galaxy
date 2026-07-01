@@ -19,27 +19,19 @@ export function TelemetryStrip({ readings }: { readings?: TelemetryReading[] }) 
     { label: 'SCAN', value: '6 < 0.5%' },
   ];
 
-  // Part of the right HUD rail (safe layout system): Comms (top) → Routes
-  // (middle) → Telemetry (bottom-anchored so it can never collide with the
-  // variable-height Routes panel above it).
+  // Lives inside <RightRail> (safe layout system) — last child, so it
+  // stacks below Comms/Routes in normal flow and can never overlap them.
   return (
-    <div
-      className="glass-panel"
-      style={{
-        position: 'fixed',
-        bottom: '20px',
-        right: '20px',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'flex-end',
-        gap: '8px',
-        zIndex: 10,
-        pointerEvents: 'none',
-        padding: '16px 18px',
-        maxWidth: '230px',
-        animation: 'fadeIn 0.8s ease-out',
-      }}
-    >
+    <div style={{
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'flex-end',
+      gap: '8px',
+      pointerEvents: 'none',
+      width: '100%',
+      borderTop: '1px solid rgba(246,160,77,0.1)',
+      paddingTop: '14px',
+    }}>
       <span className="hud-label" style={{ marginBottom: '2px' }}>
         Telemetry
       </span>

@@ -24,20 +24,14 @@ export function JourneyHud({ planetData }: { planetData: Record<string, PlanetIn
   const planetInfo = planetData[current.celestialKey];
   const bestProtocol = planetInfo?.protocols[0];
 
+  // Lives inside <BottomRail> (safe layout system) — no longer self-positioned.
   return (
-    <div className="glass-panel-strong" style={{
-      position: 'fixed',
-      bottom: '32px',
-      left: '50%',
-      transform: 'translateX(-50%)',
-      zIndex: 15,
+    <div style={{
       pointerEvents: 'none',
-      animation: 'fadeIn 0.8s ease-out',
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
       gap: '10px',
-      padding: '18px 26px',
     }}>
       {/* Mission header */}
       <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px', marginBottom: '2px' }}>
