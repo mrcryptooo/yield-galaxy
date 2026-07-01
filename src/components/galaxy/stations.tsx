@@ -22,7 +22,7 @@ const IDENTITY: Record<string, { light: string; lightIntensity: number; glowOpac
   Exponent:  { light: '#EAB0BE', lightIntensity: 0.3,  glowOpacity: 0.02 },
 };
 
-const SPRITE_SCALE = 7;
+const SPRITE_SCALE = 14;
 
 export function Stations() {
   return (
@@ -38,6 +38,7 @@ function Station({ name }: { name: keyof typeof STATION_POSITIONS }) {
   const groupRef = useRef<THREE.Group>(null);
   const lightRef = useRef<THREE.PointLight>(null);
   const glowRef = useRef<THREE.Mesh>(null);
+  const spinRef = useRef<THREE.Mesh>(null);
   const { pos, size } = STATION_POSITIONS[name];
   const id = IDENTITY[name]!;
   const texture = useTexture(TEXTURES[name]!);
@@ -61,6 +62,7 @@ function Station({ name }: { name: keyof typeof STATION_POSITIONS }) {
     const floatY = Math.sin(t * rhythm.floatSpeed) * rhythm.floatAmp;
     groupRef.current.scale.setScalar(pulse);
     groupRef.current.position.y = pos[1] + floatY;
+    if (spinRef.current) spinRef.current.rotation.z += 0.0016 * (rhythm.phase > Math.PI ? 1 : -1);
 
     let beacon = 0;
     if (t > beaconRef.current) beaconRef.current = t + rhythm.beaconInterval;
@@ -81,35 +83,53 @@ function Station({ name }: { name: keyof typeof STATION_POSITIONS }) {
       <pointLight ref={lightRef} color={id.light} intensity={id.lightIntensity} distance={8} />
 
       <Billboard follow lockX={false} lockY={false} lockZ={false}>
-        <mesh>
+        <mesh ref={spinRef}>
           <planeGeometry args={[spriteSize, spriteSize]} />
-          <meshBasicMaterial map={texture} transparent alphaTest={0.02} toneMapped={false} opacity={0.95} />
+          <meshBasicMaterial map={texture} transparent alphaTest={0.02} toneMapped={false} opacity={0.97} />
         </mesh>
       </Billboard>
 
-      {/* Volumetric halo */}
+      {/* Volumetric halo — unique color per station */}
       <mesh ref={glowRef}>
-        <sphereGeometry args={[spriteSize * 0.5, 16, 16]} />
+        <sphereGeometry args={[spriteSize * 0.55, 20, 20]} />
         <meshBasicMaterial color={id.light} transparent opacity={id.glowOpacity} side={THREE.BackSide} />
       </mesh>
 
       {/* Outer atmosphere */}
       <mesh>
-        <sphereGeometry args={[spriteSize * 0.8, 12, 12]} />
-        <meshBasicMaterial color={id.light} transparent opacity={id.glowOpacity * 0.3} side={THREE.BackSide} />
+        <sphereGeometry args={[spriteSize * 0.85, 16, 16]} />
+        <meshBasicMaterial color={id.light} transparent opacity={id.glowOpacity * 0.35} side={THREE.BackSide} />
       </mesh>
 
-      {/* Label */}
-      <Html center distanceFactor={14} style={{ pointerEvents: 'none' }} position={[0, -spriteSize * 0.55, 0]}>
-        <div style={{
-          textAlign: 'center',
-          textShadow: '0 0 12px rgba(0,0,0,0.9)',
-        }}>
+      {/* Deep atmospheric bloom shell */}
+      <mesh>
+        <sphereGeometry args={[spriteSize * 1.15, 12, 12]} />
+        <meshBasicMaterial color={id.light} transparent opacity={id.glowOpacity * 0.12} side={THREE.BackSide} />
+      </mesh>
+
+      {/* Label — glass-backed, premium destination feel */}
+      <Html center distanceFactor={14} style={{ pointerEvents: 'none' }} position={[0, -spriteSize * 0.42, 0]}>
+        <div
+          className="glass-panel"
+          style={{
+            textAlign: 'center',
+            padding: '6px 14px',
+            whiteSpace: 'nowrap',
+          }}
+        >
           <div style={{
-            fontSize: '10px', fontWeight: 400, letterSpacing: '0.06em',
-            color: 'rgba(245,240,235,0.35)',
+            fontSize: '13px', fontWeight: 600, letterSpacing: '0.05em',
+            color: id.light,
+            textShadow: `0 0 12px ${id.light}55`,
           }}>
             {name}
+          </div>
+          <div style={{
+            fontSize: '9px', fontWeight: 500, letterSpacing: '0.14em',
+            color: 'rgba(245,240,235,0.4)',
+            marginTop: '2px', textTransform: 'uppercase',
+          }}>
+            Station
           </div>
         </div>
       </Html>

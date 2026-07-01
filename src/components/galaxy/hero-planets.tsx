@@ -175,26 +175,25 @@ function Planet({ name }: { name: 'USX' | 'eUSX' | 'SLX' | 'stSLX' }) {
         </mesh>
       ))}
 
-      {/* Hover label — tiny, minimal, floating */}
+      {/* Hover label — glass-backed, premium */}
       {isMeHovered && !isMe && (
         <Html center distanceFactor={18} style={{ pointerEvents: 'none' }} position={[0, spriteSize * 0.4, 0]}>
-          <div style={{
-            textAlign: 'center',
-            textShadow: '0 0 12px rgba(0,0,0,0.9)',
-          }}>
+          <div className="glass-panel" style={{ textAlign: 'center', padding: '8px 18px' }}>
             <div style={{
-              fontSize: '13px',
-              fontWeight: 500,
-              letterSpacing: '0.05em',
+              fontSize: 'var(--fs-title)',
+              fontWeight: 600,
+              letterSpacing: '0.03em',
               color: soul.glow,
+              textShadow: `0 0 16px ${soul.glow}55`,
             }}>
               {name}
             </div>
             <div style={{
-              fontSize: '9px',
-              letterSpacing: '0.08em',
-              color: 'rgba(245,240,235,0.4)',
-              marginTop: '2px',
+              fontSize: 'var(--fs-caption)',
+              fontWeight: 500,
+              letterSpacing: '0.06em',
+              color: 'rgba(245,240,235,0.6)',
+              marginTop: '3px',
             }}>
               Explore →
             </div>

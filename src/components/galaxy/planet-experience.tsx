@@ -7,6 +7,7 @@ import * as THREE from 'three';
 import { PLANET_POSITIONS } from './positions';
 import type { PlanetInfo, Protocol } from './planet-data';
 import { useGalaxyStore } from '@/stores/galaxy-store';
+import { useViewStore } from '@/stores/view-store';
 
 export function PlanetExperience({ planetData }: { planetData: Record<string, PlanetInfo> }) {
   const focused = useGalaxyStore((s) => s.focused);
@@ -26,61 +27,90 @@ export function PlanetExperience({ planetData }: { planetData: Record<string, Pl
   );
 }
 
-// Floating information beside the planet — projected into space
+// Floating holographic AR card beside the planet — Task 8: premium info card
+// with a visual pointer connecting it back to the body it describes.
 function InfoLayer({ data }: { data: PlanetInfo }) {
   const ref = useRef<HTMLDivElement>(null);
+  const setMode = useViewStore((s) => s.setMode);
 
   return (
     <Html
       position={[3.5, 2, 0]}
       distanceFactor={12}
-      style={{ pointerEvents: 'none', width: '160px' }}
+      style={{ pointerEvents: 'none', width: '230px' }}
     >
-      <div ref={ref} style={{ animation: 'fadeIn 0.8s ease-out' }}>
-        {/* Planet name — large, glowing */}
+      <div ref={ref} style={{ animation: 'fadeIn 0.8s ease-out', position: 'relative', display: 'flex', alignItems: 'center' }}>
+        {/* Pointer — connects the card visually back to the planet */}
         <div style={{
-          fontSize: '18px', fontWeight: 500, letterSpacing: '0.06em',
-          color: 'rgba(246,160,77,0.8)',
-          textShadow: '0 0 20px rgba(246,160,77,0.2)',
-          marginBottom: '6px',
-        }}>
-          {data.name}
-        </div>
-
-        {/* Description */}
+          position: 'absolute', left: '-34px', top: '50%', width: '32px', height: '1px',
+          background: 'linear-gradient(90deg, rgba(246,160,77,0.5), rgba(246,160,77,0.05))',
+        }} />
         <div style={{
-          fontSize: '9px', lineHeight: '1.6', fontWeight: 300,
-          color: 'rgba(245,240,235,0.4)',
-          marginBottom: '10px', maxWidth: '150px',
-        }}>
-          {data.description}
-        </div>
+          position: 'absolute', left: '-36px', top: 'calc(50% - 3px)', width: '6px', height: '6px',
+          borderRadius: '50%', background: 'rgba(246,160,77,0.7)',
+          boxShadow: '0 0 10px rgba(246,160,77,0.6)',
+        }} />
 
-        {/* Stats — holographic feel */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-          <StatLine label="MASS" value={data.tvl} />
-          <StatLine label="YIELD" value={data.avgApy} />
-          <StatLine label="PROTOCOLS" value={String(data.protocolCount)} />
+        <div className="glass-panel-strong" style={{ padding: '16px 18px', width: '100%' }}>
+          {/* Planet name — hero size, glowing */}
+          <div style={{
+            fontSize: 'var(--fs-title)', fontWeight: 600, letterSpacing: '0.03em',
+            color: 'rgba(246,160,77,0.95)',
+            textShadow: '0 0 24px rgba(246,160,77,0.3)',
+            marginBottom: '6px',
+          }}>
+            {data.name}
+          </div>
+
+          {/* Description */}
+          <div className="hud-body" style={{
+            fontSize: '12.5px', marginBottom: '12px', color: 'rgba(245,240,235,0.65)',
+          }}>
+            {data.description}
+          </div>
+
+          {/* Stats — holographic feel, larger and readable */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '12px' }}>
+            <StatLine label="TVL" value={data.tvl} />
+            <StatLine label="APY" value={data.avgApy} accent />
+            <StatLine label="PROTOCOLS" value={String(data.protocolCount)} />
+          </div>
+
+          <button
+            onClick={() => setMode('list')}
+            style={{
+              width: '100%', pointerEvents: 'auto', cursor: 'pointer',
+              background: 'rgba(246,160,77,0.1)',
+              border: '1px solid rgba(246,160,77,0.3)',
+              borderRadius: '8px', padding: '7px 0',
+              fontSize: '12px', fontWeight: 600, letterSpacing: '0.08em',
+              color: 'rgba(246,160,77,0.9)',
+              transition: 'background 0.2s ease, border-color 0.2s ease',
+            }}
+          >
+            EXPLORE →
+          </button>
         </div>
       </div>
     </Html>
   );
 }
 
-function StatLine({ label, value }: { label: string; value: string }) {
+function StatLine({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
   return (
     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
       <span style={{
-        fontSize: '7px', letterSpacing: '0.15em', fontWeight: 400,
-        color: 'rgba(246,160,77,0.35)',
+        fontSize: '10px', letterSpacing: '0.14em', fontWeight: 600,
+        color: 'rgba(246,160,77,0.45)',
         fontFamily: 'var(--font-geist-mono), monospace',
       }}>
         {label}
       </span>
       <span style={{
-        fontSize: '11px', fontWeight: 300, letterSpacing: '0.04em',
-        color: 'rgba(245,240,235,0.6)',
+        fontSize: '15px', fontWeight: 500, letterSpacing: '0.01em',
+        color: accent ? 'rgba(246,160,77,0.95)' : 'rgba(245,240,235,0.85)',
         fontFamily: 'var(--font-geist-mono), monospace',
+        textShadow: accent ? '0 0 14px rgba(246,160,77,0.3)' : 'none',
       }}>
         {value}
       </span>
@@ -161,23 +191,26 @@ function ProtocolNode({ protocol, index, total, orbitRadius, isSelected, anySele
         />
       </mesh>
 
-      {/* Protocol label */}
+      {/* Protocol label — glass-backed */}
       <Html center distanceFactor={10} style={{ pointerEvents: 'none' }} position={[0, 0.4, 0]}>
-        <div style={{
-          textAlign: 'center',
-          textShadow: '0 0 8px rgba(0,0,0,0.9)',
-          opacity: anySelected && !isSelected ? 0.4 : 1,
-          transition: 'opacity 0.3s ease',
-        }}>
+        <div
+          className="glass-panel"
+          style={{
+            textAlign: 'center',
+            padding: '5px 12px',
+            opacity: anySelected && !isSelected ? 0.45 : 1,
+            transition: 'opacity 0.3s ease',
+          }}
+        >
           <div style={{
-            fontSize: '9px', fontWeight: 500, letterSpacing: '0.04em',
-            color: isSelected ? 'rgba(246,160,77,0.8)' : 'rgba(245,240,235,0.5)',
+            fontSize: '12px', fontWeight: 600, letterSpacing: '0.03em',
+            color: isSelected ? 'rgba(246,160,77,0.95)' : 'rgba(245,240,235,0.8)',
           }}>
             {protocol.name}
           </div>
           <div style={{
-            fontSize: '8px', fontFamily: 'var(--font-geist-mono), monospace',
-            color: 'rgba(246,160,77,0.4)',
+            fontSize: '11px', fontFamily: 'var(--font-geist-mono), monospace',
+            color: 'rgba(246,160,77,0.6)', marginTop: '1px',
           }}>
             {protocol.apy}%
           </div>
@@ -187,18 +220,14 @@ function ProtocolNode({ protocol, index, total, orbitRadius, isSelected, anySele
       {/* Holographic data plate — only when selected */}
       {isSelected && (
         <Html distanceFactor={8} style={{ pointerEvents: 'none' }} position={[1.5, 0.5, 0]}>
-          <div style={{
-            width: '140px',
-            padding: '10px',
-            background: 'rgba(10,14,26,0.5)',
-            backdropFilter: 'blur(8px)',
-            border: '1px solid rgba(246,160,77,0.1)',
-            borderRadius: '8px',
+          <div className="glass-panel-strong" style={{
+            width: '190px',
+            padding: '14px',
             animation: 'fadeIn 0.5s ease-out',
           }}>
             <div style={{
-              fontSize: '11px', fontWeight: 500, letterSpacing: '0.04em',
-              color: 'rgba(246,160,77,0.7)', marginBottom: '6px',
+              fontSize: '14px', fontWeight: 600, letterSpacing: '0.02em',
+              color: 'rgba(246,160,77,0.9)', marginBottom: '8px',
             }}>
               {protocol.name} · {protocol.type}
             </div>
@@ -227,17 +256,17 @@ function ProtocolNode({ protocol, index, total, orbitRadius, isSelected, anySele
 
 function HoloStat({ label, value }: { label: string; value: string }) {
   return (
-    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '1px 0' }}>
+    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '2px 0' }}>
       <span style={{
-        fontSize: '7px', letterSpacing: '0.12em',
-        color: 'rgba(246,160,77,0.3)',
+        fontSize: '10px', letterSpacing: '0.1em', fontWeight: 600,
+        color: 'rgba(246,160,77,0.5)',
         fontFamily: 'var(--font-geist-mono), monospace',
       }}>
         {label}
       </span>
       <span style={{
-        fontSize: '9px', fontWeight: 300,
-        color: 'rgba(245,240,235,0.55)',
+        fontSize: '12.5px', fontWeight: 500,
+        color: 'rgba(245,240,235,0.85)',
         fontFamily: 'var(--font-geist-mono), monospace',
       }}>
         {value}

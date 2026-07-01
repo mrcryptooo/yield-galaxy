@@ -2,13 +2,15 @@
 
 import { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { useTexture } from '@react-three/drei';
+import { Billboard, useTexture } from '@react-three/drei';
 import * as THREE from 'three';
 
 export function SolsticeSun() {
   const coreRef = useRef<THREE.Mesh>(null);
   const coronaRef = useRef<THREE.Mesh>(null);
   const heatRef = useRef<THREE.Mesh>(null);
+  const logoRef = useRef<THREE.Mesh>(null);
+  const rayRef = useRef<THREE.Mesh>(null);
 
   const texture = useTexture('/assets/galaxy/solstice-sun.png');
   texture.colorSpace = THREE.SRGBColorSpace;
@@ -19,7 +21,22 @@ export function SolsticeSun() {
     if (coreRef.current) {
       const breathe = 1 + Math.sin(t * 0.3) * 0.03 + Math.sin(t * 0.77) * 0.015;
       coreRef.current.scale.setScalar(breathe);
-      coreRef.current.rotation.y += 0.0008;
+      coreRef.current.rotation.y += 0.0016;
+    }
+
+    // Billboard-locked logo plate — always faces the camera, so the Solstice
+    // mark never rotates out of view no matter how the textured sphere spins.
+    if (logoRef.current) {
+      const pulse = 1 + Math.sin(t * 0.4) * 0.02;
+      logoRef.current.scale.setScalar(pulse);
+      const mat = logoRef.current.material as THREE.MeshBasicMaterial;
+      mat.opacity = 0.9 + Math.sin(t * 0.6) * 0.08;
+    }
+
+    if (rayRef.current) {
+      rayRef.current.rotation.z += 0.0011;
+      const mat = rayRef.current.material as THREE.MeshBasicMaterial;
+      mat.opacity = 0.05 + Math.sin(t * 0.5) * 0.02;
     }
 
     if (coronaRef.current) {
@@ -44,10 +61,25 @@ export function SolsticeSun() {
       <pointLight color="#EAB0BE" intensity={0.8} distance={25} position={[0, -4, 2]} />
       <pointLight color="#F7B36C" intensity={0.5} distance={20} position={[3, 0, -3]} />
 
-      {/* Core — textured sphere with sun artwork */}
+      {/* Core — textured sphere with sun artwork, true volumetric rotation */}
       <mesh ref={coreRef}>
         <sphereGeometry args={[3.5, 64, 64]} />
         <meshBasicMaterial map={texture} toneMapped={false} />
+      </mesh>
+
+      {/* Logo plate — billboard-locked so the Solstice mark reads from every
+          viewing angle regardless of the core sphere's rotation */}
+      <Billboard follow lockX={false} lockY={false} lockZ={false}>
+        <mesh ref={logoRef} position={[0, 0, 0.02]}>
+          <circleGeometry args={[2.55, 48]} />
+          <meshBasicMaterial map={texture} transparent opacity={0.9} toneMapped={false} depthWrite={false} />
+        </mesh>
+      </Billboard>
+
+      {/* Solar rays — rotating god-ray plate */}
+      <mesh ref={rayRef}>
+        <ringGeometry args={[3.6, 6.4, 64]} />
+        <meshBasicMaterial color="#FFD8A8" transparent opacity={0.05} side={THREE.DoubleSide} />
       </mesh>
 
       {/* Heat distortion layer */}

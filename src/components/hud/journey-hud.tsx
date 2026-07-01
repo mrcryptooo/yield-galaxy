@@ -25,7 +25,7 @@ export function JourneyHud({ planetData }: { planetData: Record<string, PlanetIn
   const bestProtocol = planetInfo?.protocols[0];
 
   return (
-    <div style={{
+    <div className="glass-panel-strong" style={{
       position: 'fixed',
       bottom: '32px',
       left: '50%',
@@ -37,6 +37,7 @@ export function JourneyHud({ planetData }: { planetData: Record<string, PlanetIn
       flexDirection: 'column',
       alignItems: 'center',
       gap: '10px',
+      padding: '18px 26px',
     }}>
       {/* Timeline */}
       <div style={{
@@ -75,17 +76,17 @@ export function JourneyHud({ planetData }: { planetData: Record<string, PlanetIn
                 {/* Label below */}
                 <span style={{
                   position: 'absolute',
-                  top: '14px',
+                  top: '16px',
                   whiteSpace: 'nowrap',
-                  fontSize: '7px',
+                  fontSize: '11px',
                   fontFamily: 'var(--font-geist-mono), monospace',
-                  letterSpacing: '0.06em',
+                  letterSpacing: '0.04em',
                   color: isCurrent
-                    ? 'rgba(246,160,77,0.6)'
+                    ? 'rgba(246,160,77,0.9)'
                     : isCompleted
-                      ? 'rgba(245,240,235,0.3)'
-                      : 'rgba(245,240,235,0.1)',
-                  fontWeight: isCurrent ? 500 : 300,
+                      ? 'rgba(245,240,235,0.55)'
+                      : 'rgba(245,240,235,0.25)',
+                  fontWeight: isCurrent ? 600 : 400,
                   transition: 'all 0.6s ease',
                 }}>
                   {node.label}
@@ -118,9 +119,9 @@ export function JourneyHud({ planetData }: { planetData: Record<string, PlanetIn
       }}>
         {/* Route name */}
         <span style={{
-          fontSize: '8px',
-          letterSpacing: '0.1em',
-          color: 'rgba(246,160,77,0.3)',
+          fontSize: 'var(--fs-caption)', fontWeight: 600,
+          letterSpacing: '0.08em',
+          color: 'rgba(246,160,77,0.7)',
           fontFamily: 'var(--font-geist-mono), monospace',
         }}>
           {activeRoute.template.name.toUpperCase()}
@@ -137,9 +138,9 @@ export function JourneyHud({ planetData }: { planetData: Record<string, PlanetIn
 
         {completed && (
           <span style={{
-            fontSize: '8px',
-            letterSpacing: '0.08em',
-            color: 'rgba(246,160,77,0.5)',
+            fontSize: 'var(--fs-caption)', fontWeight: 600,
+            letterSpacing: '0.06em',
+            color: 'rgba(246,160,77,0.9)',
             fontFamily: 'var(--font-geist-mono), monospace',
           }}>
             MISSION COMPLETE
@@ -151,14 +152,14 @@ export function JourneyHud({ planetData }: { planetData: Record<string, PlanetIn
           <button
             onClick={togglePlaying}
             style={{
-              background: 'none',
-              border: '1px solid rgba(246,160,77,0.1)',
-              borderRadius: '4px',
-              padding: '3px 8px',
-              fontSize: '8px',
+              background: 'rgba(246,160,77,0.08)',
+              border: '1px solid rgba(246,160,77,0.24)',
+              borderRadius: '6px',
+              padding: '5px 12px',
+              fontSize: '11px', fontWeight: 600,
               fontFamily: 'var(--font-geist-mono), monospace',
-              letterSpacing: '0.1em',
-              color: 'rgba(245,240,235,0.3)',
+              letterSpacing: '0.08em',
+              color: 'rgba(245,240,235,0.75)',
               cursor: 'pointer',
             }}
           >
@@ -170,12 +171,13 @@ export function JourneyHud({ planetData }: { planetData: Record<string, PlanetIn
           onClick={endJourney}
           style={{
             background: 'none',
-            border: 'none',
-            padding: '3px 6px',
-            fontSize: '8px',
+            border: '1px solid rgba(245,240,235,0.12)',
+            borderRadius: '6px',
+            padding: '5px 10px',
+            fontSize: '11px', fontWeight: 600,
             fontFamily: 'var(--font-geist-mono), monospace',
-            letterSpacing: '0.1em',
-            color: 'rgba(245,240,235,0.15)',
+            letterSpacing: '0.08em',
+            color: 'rgba(245,240,235,0.4)',
             cursor: 'pointer',
           }}
         >
@@ -190,18 +192,18 @@ function MiniStat({ label, value }: { label: string; value: string }) {
   return (
     <span>
       <span style={{
-        fontSize: '6px',
-        letterSpacing: '0.12em',
-        color: 'rgba(246,160,77,0.2)',
+        fontSize: '10px', fontWeight: 600,
+        letterSpacing: '0.1em',
+        color: 'rgba(246,160,77,0.5)',
         fontFamily: 'var(--font-geist-mono), monospace',
       }}>
         {label}
       </span>
       {' '}
       <span style={{
-        fontSize: '9px',
-        fontWeight: 300,
-        color: 'rgba(245,240,235,0.35)',
+        fontSize: 'var(--fs-caption)',
+        fontWeight: 500,
+        color: 'rgba(245,240,235,0.75)',
         fontFamily: 'var(--font-geist-mono), monospace',
       }}>
         {value}

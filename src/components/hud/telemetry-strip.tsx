@@ -21,20 +21,23 @@ export function TelemetryStrip({ readings }: { readings?: TelemetryReading[] }) 
 
   return (
     <div
+      className="glass-panel"
       style={{
         position: 'fixed',
-        bottom: '10px',
+        bottom: '20px',
         left: '50%',
         transform: 'translateX(-50%)',
         display: 'flex',
         alignItems: 'center',
-        gap: '20px',
+        gap: '22px',
         zIndex: 10,
         pointerEvents: 'none',
+        padding: '10px 22px',
+        animation: 'fadeIn 0.8s ease-out',
       }}
     >
       {items.map((r, i) => (
-        <span key={i} style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+        <span key={i} style={{ display: 'flex', alignItems: 'center', gap: '22px' }}>
           {i > 0 && <Dot />}
           <Reading label={r.label} value={r.value} accent={r.accent} />
         </span>
@@ -48,20 +51,21 @@ function Reading({ label, value, accent }: { label: string; value: string; accen
     <span style={{ pointerEvents: 'auto', cursor: 'default' }}>
       <span style={{
         fontFamily: 'var(--font-geist-mono), monospace',
-        fontSize: '8px',
-        letterSpacing: '0.12em',
-        color: accent ? 'rgba(246,160,77,0.35)' : 'rgba(245,240,235,0.18)',
-        textShadow: accent ? '0 0 6px rgba(246,160,77,0.1)' : 'none',
+        fontSize: 'var(--fs-micro)',
+        fontWeight: 600,
+        letterSpacing: '0.1em',
+        color: accent ? 'rgba(246,160,77,0.55)' : 'rgba(245,240,235,0.4)',
+        textShadow: accent ? '0 0 8px rgba(246,160,77,0.15)' : 'none',
       }}>
         {label}
       </span>
       {' '}
       <span style={{
         fontFamily: 'var(--font-geist-mono), monospace',
-        fontSize: '8px',
-        fontWeight: 300,
-        letterSpacing: '0.06em',
-        color: 'rgba(245,240,235,0.22)',
+        fontSize: 'var(--fs-caption)',
+        fontWeight: 500,
+        letterSpacing: '0.03em',
+        color: 'rgba(245,240,235,0.6)',
       }}>
         {value}
       </span>

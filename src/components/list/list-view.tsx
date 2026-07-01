@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import Image from 'next/image';
 import type { Opportunity } from '@/lib/types';
 import { SOURCE_DISPLAY_NAMES } from '@/lib/constants';
 import { formatTvl, formatApy } from '@/lib/format';
@@ -11,6 +12,14 @@ type SortKey = 'score' | 'total_apy' | 'tvl' | 'risk_grade' | 'source_id';
 
 const RISK_COLORS: Record<string, string> = {
   A: '#4ade80', B: '#a78bfa', C: '#F6A04D', D: '#fb923c', F: '#ef4444',
+};
+
+const PROTOCOL_LOGOS: Record<string, string> = {
+  Kamino: '/assets/stations/kamino-station.webp',
+  Loopscale: '/assets/stations/loopscale-station.png',
+  Orca: '/assets/stations/orca-station.webp',
+  Raydium: '/assets/stations/raydium-station.png',
+  Exponent: '/assets/stations/exponent-station.png',
 };
 
 export function ListView({ opportunities }: { opportunities?: Opportunity[] }) {
@@ -53,57 +62,53 @@ export function ListView({ opportunities }: { opportunities?: Opportunity[] }) {
   return (
     <div style={{
       position: 'fixed', inset: 0, zIndex: 15,
-      background: 'rgba(10,14,26,0.92)',
-      backdropFilter: 'blur(20px)',
+      background: 'rgba(8,11,20,0.88)',
+      backdropFilter: 'blur(24px)',
       overflow: 'auto',
-      padding: '60px 40px 40px',
-      animation: 'fadeIn 0.4s ease-out',
+      padding: '90px 40px 60px',
+      animation: 'fadeIn 0.35s cubic-bezier(0.16,1,0.3,1) both',
     }}>
       {/* Header */}
-      <div style={{ maxWidth: '1100px', margin: '0 auto 24px' }}>
+      <div style={{ maxWidth: '1180px', margin: '0 auto 28px' }}>
         <h1 style={{
-          fontSize: '20px', fontWeight: 400, letterSpacing: '0.06em',
-          color: 'rgba(246,160,77,0.6)',
-          margin: '0 0 4px',
+          fontSize: 'var(--fs-hero)', fontWeight: 600, letterSpacing: '0.02em',
+          color: 'rgba(246,160,77,0.9)',
+          textShadow: '0 0 30px rgba(246,160,77,0.15)',
+          margin: '0 0 6px',
         }}>
           Yield Opportunities
         </h1>
         <p style={{
-          fontSize: '12px', fontWeight: 300, letterSpacing: '0.03em',
-          color: 'rgba(245,240,235,0.3)', margin: 0,
+          fontSize: 'var(--fs-body)', fontWeight: 400, letterSpacing: '0.01em',
+          color: 'rgba(245,240,235,0.55)', margin: 0,
         }}>
           {sorted.length} destinations across the Solstice ecosystem
         </p>
       </div>
 
-      {/* Column headers */}
-      <div style={{
-        maxWidth: '1100px', margin: '0 auto',
-        display: 'grid',
-        gridTemplateColumns: '1fr 120px 100px 80px 60px 60px 80px',
-        gap: '12px', padding: '0 16px 8px',
-        borderBottom: '1px solid rgba(246,160,77,0.06)',
+      {/* Sort controls */}
+      <div className="glass-panel" style={{
+        maxWidth: '1180px', margin: '0 auto 16px',
+        display: 'flex', gap: '4px', padding: '8px 12px', width: 'fit-content',
       }}>
         {([
           ['Protocol', 'source_id'],
-          ['Asset', null],
           ['TVL', 'tvl'],
           ['APY', 'total_apy'],
           ['Risk', 'risk_grade'],
           ['Score', 'score'],
-          ['', null],
-        ] as [string, SortKey | null][]).map(([label, key]) => (
+        ] as [string, SortKey][]).map(([label, key]) => (
           <button
-            key={label || 'action'}
-            onClick={() => key && toggleSort(key)}
+            key={key}
+            onClick={() => toggleSort(key)}
             style={{
-              background: 'none', border: 'none', padding: '4px 0',
-              textAlign: key === 'tvl' || key === 'total_apy' || key === 'score' ? 'right' : 'left',
-              fontSize: '9px', fontWeight: 500, letterSpacing: '0.12em',
+              background: sortKey === key ? 'rgba(246,160,77,0.12)' : 'none',
+              border: 'none', borderRadius: '8px', padding: '6px 14px',
+              fontSize: 'var(--fs-caption)', fontWeight: 600, letterSpacing: '0.08em',
               fontFamily: 'var(--font-geist-mono), monospace',
-              color: sortKey === key ? 'rgba(246,160,77,0.5)' : 'rgba(245,240,235,0.2)',
-              cursor: key ? 'pointer' : 'default',
-              textTransform: 'uppercase',
+              color: sortKey === key ? 'rgba(246,160,77,0.95)' : 'rgba(245,240,235,0.45)',
+              cursor: 'pointer', textTransform: 'uppercase',
+              transition: 'background 0.2s ease, color 0.2s ease',
             }}
           >
             {label}{sortKey === key ? (sortAsc ? ' ↑' : ' ↓') : ''}
@@ -111,94 +116,80 @@ export function ListView({ opportunities }: { opportunities?: Opportunity[] }) {
         ))}
       </div>
 
-      {/* Rows */}
-      <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
+      {/* Cards */}
+      <div style={{
+        maxWidth: '1180px', margin: '0 auto',
+        display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))',
+        gap: '14px',
+      }}>
         {sorted.map((opp) => {
           const protocol = SOURCE_DISPLAY_NAMES[opp.source_id] ?? opp.source_id;
+          const logo = PROTOCOL_LOGOS[protocol];
+          const riskColor = RISK_COLORS[opp.risk_grade] ?? 'rgba(245,240,235,0.3)';
           return (
             <div
               key={opp.id}
-              style={{
-                display: 'grid',
-                gridTemplateColumns: '1fr 120px 100px 80px 60px 60px 80px',
-                gap: '12px',
-                padding: '12px 16px',
-                borderRadius: '8px',
-                margin: '2px 0',
-                background: 'rgba(245,240,235,0.01)',
-                border: '1px solid rgba(246,160,77,0.03)',
-                transition: 'background 0.2s ease, border-color 0.2s ease',
-                cursor: 'default',
-                alignItems: 'center',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = 'rgba(246,160,77,0.04)';
-                e.currentTarget.style.borderColor = 'rgba(246,160,77,0.08)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'rgba(245,240,235,0.01)';
-                e.currentTarget.style.borderColor = 'rgba(246,160,77,0.03)';
-              }}
+              className="glass-card"
+              style={{ padding: '18px', display: 'flex', flexDirection: 'column', gap: '14px' }}
             >
-              {/* Protocol */}
-              <div>
+              {/* Top row: logo + protocol/asset + risk badge */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                 <div style={{
-                  fontSize: '13px', fontWeight: 400, letterSpacing: '0.02em',
-                  color: 'rgba(245,240,235,0.6)',
+                  width: '44px', height: '44px', borderRadius: '10px',
+                  background: 'rgba(246,160,77,0.06)', border: '1px solid rgba(246,160,77,0.12)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                  overflow: 'hidden',
                 }}>
-                  {protocol}
+                  {logo ? (
+                    <Image src={logo} alt={protocol} width={44} height={44} style={{ width: '32px', height: '32px', objectFit: 'contain' }} />
+                  ) : (
+                    <span style={{ fontSize: '16px', fontWeight: 700, color: 'rgba(246,160,77,0.7)' }}>{protocol[0]}</span>
+                  )}
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{
+                    fontSize: 'var(--fs-body)', fontWeight: 600, letterSpacing: '0.01em',
+                    color: 'rgba(250,246,242,0.92)',
+                  }}>
+                    {protocol}
+                  </div>
+                  <div style={{
+                    fontSize: 'var(--fs-micro)', fontWeight: 500, letterSpacing: '0.04em',
+                    color: 'rgba(245,240,235,0.45)', marginTop: '2px',
+                  }}>
+                    {opp.symbol}
+                  </div>
                 </div>
                 <div style={{
-                  fontSize: '10px', fontWeight: 300, letterSpacing: '0.04em',
-                  color: 'rgba(245,240,235,0.2)', marginTop: '2px',
+                  width: '30px', height: '30px', borderRadius: '50%',
+                  background: `${riskColor}22`, border: `1px solid ${riskColor}55`,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: '13px', fontWeight: 700, color: riskColor,
+                  fontFamily: 'var(--font-geist-mono), monospace', flexShrink: 0,
                 }}>
-                  {opp.strategy} · {opp.celestial_body}
+                  {opp.risk_grade}
                 </div>
               </div>
 
-              {/* Asset */}
-              <div style={{
-                fontSize: '12px', fontWeight: 400, letterSpacing: '0.03em',
-                color: 'rgba(245,240,235,0.45)',
-              }}>
-                {opp.symbol}
+              {/* Stats row */}
+              <div style={{ display: 'flex', gap: '20px' }}>
+                <Stat label="TVL" value={formatTvl(opp.tvl)} />
+                <Stat
+                  label="APY"
+                  value={formatApy(opp.total_apy)}
+                  accent={opp.total_apy > 10}
+                />
+                <Stat label="SCORE" value={String(opp.score)} />
               </div>
 
-              {/* TVL */}
+              {/* Route preview */}
               <div style={{
-                fontSize: '13px', fontWeight: 400, textAlign: 'right',
+                fontSize: 'var(--fs-caption)', fontWeight: 400, letterSpacing: '0.01em',
+                color: 'rgba(245,240,235,0.4)',
                 fontFamily: 'var(--font-geist-mono), monospace',
-                color: 'rgba(245,240,235,0.5)', letterSpacing: '0.02em',
+                paddingTop: '4px', borderTop: '1px solid rgba(246,160,77,0.08)',
               }}>
-                {formatTvl(opp.tvl)}
-              </div>
-
-              {/* APY */}
-              <div style={{
-                fontSize: '14px', fontWeight: 500, textAlign: 'right',
-                fontFamily: 'var(--font-geist-mono), monospace',
-                color: opp.total_apy > 10 ? 'rgba(246,160,77,0.7)' : 'rgba(245,240,235,0.5)',
-                letterSpacing: '0.02em',
-              }}>
-                {formatApy(opp.total_apy)}
-              </div>
-
-              {/* Risk */}
-              <div style={{
-                fontSize: '12px', fontWeight: 500, textAlign: 'center',
-                fontFamily: 'var(--font-geist-mono), monospace',
-                color: RISK_COLORS[opp.risk_grade] ?? 'rgba(245,240,235,0.3)',
-              }}>
-                {opp.risk_grade}
-              </div>
-
-              {/* Score */}
-              <div style={{
-                fontSize: '13px', fontWeight: 400, textAlign: 'right',
-                fontFamily: 'var(--font-geist-mono), monospace',
-                color: 'rgba(246,160,77,0.4)',
-              }}>
-                {opp.score}
+                {opp.celestial_body !== protocol ? `${opp.celestial_body} → ${protocol}` : protocol} · {opp.strategy}
               </div>
 
               {/* Explore */}
@@ -206,33 +197,33 @@ export function ListView({ opportunities }: { opportunities?: Opportunity[] }) {
                 <button
                   onClick={() => explore(opp)}
                   style={{
-                    background: 'none',
-                    border: '1px solid rgba(246,160,77,0.1)',
-                    borderRadius: '4px',
-                    padding: '4px 10px',
-                    fontSize: '9px', fontWeight: 400,
+                    background: 'rgba(246,160,77,0.08)',
+                    border: '1px solid rgba(246,160,77,0.22)',
+                    borderRadius: '8px',
+                    padding: '8px 0',
+                    fontSize: 'var(--fs-caption)', fontWeight: 600,
                     fontFamily: 'var(--font-geist-mono), monospace',
-                    letterSpacing: '0.08em',
-                    color: 'rgba(246,160,77,0.4)',
+                    letterSpacing: '0.1em',
+                    color: 'rgba(246,160,77,0.85)',
                     cursor: 'pointer',
-                    transition: 'border-color 0.2s ease, color 0.2s ease',
+                    transition: 'border-color 0.2s ease, color 0.2s ease, background 0.2s ease',
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.borderColor = 'rgba(246,160,77,0.3)';
-                    e.currentTarget.style.color = 'rgba(246,160,77,0.7)';
+                    e.currentTarget.style.borderColor = 'rgba(246,160,77,0.5)';
+                    e.currentTarget.style.background = 'rgba(246,160,77,0.14)';
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.borderColor = 'rgba(246,160,77,0.1)';
-                    e.currentTarget.style.color = 'rgba(246,160,77,0.4)';
+                    e.currentTarget.style.borderColor = 'rgba(246,160,77,0.22)';
+                    e.currentTarget.style.background = 'rgba(246,160,77,0.08)';
                   }}
                 >
                   EXPLORE →
                 </button>
               ) : (
                 <span style={{
-                  fontSize: '8px', color: 'rgba(245,240,235,0.12)',
+                  fontSize: 'var(--fs-micro)', color: 'rgba(245,240,235,0.3)',
                   fontFamily: 'var(--font-geist-mono), monospace',
-                  textAlign: 'center',
+                  textAlign: 'center', textTransform: 'uppercase', letterSpacing: '0.1em',
                 }}>
                   {opp.celestial_type}
                 </span>
@@ -240,6 +231,28 @@ export function ListView({ opportunities }: { opportunities?: Opportunity[] }) {
             </div>
           );
         })}
+      </div>
+    </div>
+  );
+}
+
+function Stat({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
+  return (
+    <div>
+      <div style={{
+        fontSize: '10px', fontWeight: 600, letterSpacing: '0.12em',
+        color: 'rgba(246,160,77,0.45)', fontFamily: 'var(--font-geist-mono), monospace',
+        marginBottom: '2px', textTransform: 'uppercase',
+      }}>
+        {label}
+      </div>
+      <div style={{
+        fontSize: 'var(--fs-value)', fontWeight: 600,
+        color: accent ? 'rgba(246,160,77,0.95)' : 'rgba(245,240,235,0.85)',
+        fontFamily: 'var(--font-geist-mono), monospace',
+        textShadow: accent ? '0 0 14px rgba(246,160,77,0.3)' : 'none',
+      }}>
+        {value}
       </div>
     </div>
   );

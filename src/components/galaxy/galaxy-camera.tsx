@@ -142,13 +142,15 @@ export function GalaxyCamera() {
       return;
     }
 
-    // Flying (focus or return)
+    // Flying (focus or return) — momentum + slight overshoot before settling,
+    // so a fly-to reads as weighted travel rather than a linear tween.
     if (phase.current === 'flying') {
       const speed = activeRoute ? 0.4 : 0.55;
       progress.current = Math.min(1, progress.current + delta * speed);
-      const e = smootherstep(progress.current);
-      camera.position.lerpVectors(flyFrom.current.pos, flyTo.current.pos, e);
-      if (ctrl) ctrl.target.lerpVectors(flyFrom.current.target, flyTo.current.target, e);
+      const posEase = easeOutBackSoft(progress.current);
+      const targetEase = smootherstep(progress.current);
+      camera.position.lerpVectors(flyFrom.current.pos, flyTo.current.pos, posEase);
+      if (ctrl) ctrl.target.lerpVectors(flyFrom.current.target, flyTo.current.target, targetEase);
       if (progress.current >= 1) {
         if (activeRoute) {
           phase.current = 'journey-orbit';
@@ -172,11 +174,12 @@ export function GalaxyCamera() {
       return;
     }
 
-    // Idle drift
+    // Idle drift — micro breathing, gives the whole rig a sense of weight
+    // even at rest instead of feeling perfectly locked-off.
     drift.current.x += delta * 0.006;
     drift.current.y += delta * 0.005;
-    camera.position.x += (Math.sin(drift.current.x * 0.5) * 0.04 + Math.sin(drift.current.x * 0.9) * 0.02) * delta;
-    camera.position.y += (Math.cos(drift.current.y * 0.35) * 0.02) * delta;
+    camera.position.x += (Math.sin(drift.current.x * 0.5) * 0.05 + Math.sin(drift.current.x * 0.9) * 0.025) * delta;
+    camera.position.y += (Math.cos(drift.current.y * 0.35) * 0.025 + Math.sin(drift.current.y * 0.62) * 0.012) * delta;
   });
 
   return (
@@ -201,4 +204,13 @@ export function GalaxyCamera() {
 function smootherstep(x: number): number {
   x = Math.max(0, Math.min(1, x));
   return x * x * x * (x * (x * 6 - 15) + 10);
+}
+
+// Soft back-ease: overshoots slightly past the destination then settles back,
+// giving camera fly-tos a sense of momentum and weight instead of a flat tween.
+function easeOutBackSoft(x: number): number {
+  x = Math.max(0, Math.min(1, x));
+  const c1 = 0.9;
+  const c3 = c1 + 1;
+  return 1 + c3 * Math.pow(x - 1, 3) + c1 * Math.pow(x - 1, 2);
 }

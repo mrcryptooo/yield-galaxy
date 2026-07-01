@@ -51,20 +51,23 @@ export function RouteSelector({ opportunities }: { opportunities?: Opportunity[]
   if (activeRoute) return null;
 
   return (
-    <div style={{
+    <div className="glass-panel" style={{
       position: 'fixed',
-      top: '50%',
-      right: '16px',
+      top: '68%',
+      right: '20px',
       transform: 'translateY(-50%)',
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'flex-end',
-      gap: '6px',
+      gap: '8px',
       zIndex: 10,
       pointerEvents: 'none',
+      padding: '16px 18px',
+      maxWidth: '230px',
+      animation: 'fadeIn 0.8s ease-out',
     }}>
-      <span className="hud-label" style={{ marginBottom: '4px', marginRight: '2px' }}>
-        ROUTES
+      <span className="hud-label" style={{ marginBottom: '2px' }}>
+        Routes
       </span>
 
       {/* Risk preference toggle */}
@@ -76,15 +79,16 @@ export function RouteSelector({ opportunities }: { opportunities?: Opportunity[]
             key={pref}
             onClick={() => { setRiskPreference(pref); }}
             style={{
-              background: 'none',
-              border: riskPreference === pref ? '1px solid rgba(246,160,77,0.2)' : '1px solid rgba(245,240,235,0.05)',
-              borderRadius: '3px',
-              padding: '2px 6px',
-              fontSize: '7px',
+              background: riskPreference === pref ? 'rgba(246,160,77,0.14)' : 'none',
+              border: riskPreference === pref ? '1px solid rgba(246,160,77,0.35)' : '1px solid rgba(245,240,235,0.1)',
+              borderRadius: '6px',
+              padding: '4px 9px',
+              fontSize: '10px', fontWeight: 600,
               fontFamily: 'var(--font-geist-mono), monospace',
-              letterSpacing: '0.1em',
-              color: riskPreference === pref ? 'rgba(246,160,77,0.5)' : 'rgba(245,240,235,0.15)',
+              letterSpacing: '0.08em',
+              color: riskPreference === pref ? 'rgba(246,160,77,0.9)' : 'rgba(245,240,235,0.4)',
               cursor: 'pointer',
+              transition: 'all 0.2s ease',
             }}
           >
             {RISK_LABELS[pref]}
@@ -96,17 +100,18 @@ export function RouteSelector({ opportunities }: { opportunities?: Opportunity[]
       <button
         onClick={runOptimizer}
         style={{
-          background: 'none',
-          border: '1px solid rgba(246,160,77,0.12)',
-          borderRadius: '4px',
-          padding: '4px 10px',
-          fontSize: '8px',
+          background: 'rgba(246,160,77,0.1)',
+          border: '1px solid rgba(246,160,77,0.28)',
+          borderRadius: '8px',
+          padding: '7px 14px',
+          fontSize: 'var(--fs-caption)', fontWeight: 600,
           fontFamily: 'var(--font-geist-mono), monospace',
-          letterSpacing: '0.1em',
-          color: 'rgba(246,160,77,0.4)',
+          letterSpacing: '0.08em',
+          color: 'rgba(246,160,77,0.9)',
           cursor: 'pointer',
           pointerEvents: 'auto',
-          marginBottom: '6px',
+          marginBottom: '4px',
+          transition: 'background 0.2s ease',
         }}
       >
         {result ? 'RE-OPTIMIZE' : 'FIND ROUTES'}
@@ -116,10 +121,10 @@ export function RouteSelector({ opportunities }: { opportunities?: Opportunity[]
       {result && (
         <>
           <span style={{
-            fontSize: '7px',
+            fontSize: '10px', fontWeight: 500,
             fontFamily: 'var(--font-geist-mono), monospace',
-            letterSpacing: '0.1em',
-            color: 'rgba(245,240,235,0.12)',
+            letterSpacing: '0.08em',
+            color: 'rgba(245,240,235,0.35)',
             marginBottom: '2px',
           }}>
             {result.totalValid}/{result.totalCandidates} VALID
@@ -132,29 +137,32 @@ export function RouteSelector({ opportunities }: { opportunities?: Opportunity[]
               style={{
                 background: 'none',
                 border: 'none',
-                padding: '3px 0',
+                borderTop: '1px solid rgba(246,160,77,0.08)',
+                padding: '6px 0',
+                width: '100%',
                 textAlign: 'right',
                 cursor: 'pointer',
                 pointerEvents: 'auto',
               }}
             >
               <div style={{
-                fontSize: '9px',
-                fontWeight: 400,
-                letterSpacing: '0.03em',
-                color: 'rgba(245,240,235,0.35)',
-                textShadow: '0 0 8px rgba(0,0,0,0.5)',
+                fontSize: 'var(--fs-caption)',
+                fontWeight: 500,
+                letterSpacing: '0.02em',
+                color: 'rgba(245,240,235,0.75)',
               }}>
                 {route.name}
               </div>
               <div style={{
-                fontSize: '7px',
+                fontSize: '10px',
+                fontWeight: 500,
                 fontFamily: 'var(--font-geist-mono), monospace',
-                letterSpacing: '0.08em',
-                color: 'rgba(246,160,77,0.2)',
+                letterSpacing: '0.05em',
+                color: 'rgba(246,160,77,0.5)',
                 display: 'flex',
-                gap: '8px',
+                gap: '10px',
                 justifyContent: 'flex-end',
+                marginTop: '2px',
               }}>
                 <span>{formatApy(route.simulation.cumulativeApy)}</span>
                 <span>RISK:{route.simulation.cumulativeRisk}</span>

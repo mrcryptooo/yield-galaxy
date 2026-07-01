@@ -33,8 +33,16 @@ export function buildPlanetData(opportunities: Opportunity[]): Record<string, Pl
         .filter(t => !['usx', 'eusx', 'slx', 'stslx'].includes(t));
       const suffix = nonSolsticeTokens.length > 0 ? '-' + nonSolsticeTokens.join('-') : '';
       const slug = body.toLowerCase() + '-' + protocolName + suffix;
+      // `slug` alone is the deterministic key CAPTAIN_PROTOCOL_LINES matches on
+      // (locked contract, see MASTER_CHECKPOINT.md) — but two distinct pools
+      // (e.g. two Loopscale positions on the same planet with the same
+      // non-Solstice token set, differing only by strategy) can produce an
+      // identical slug. Append the real, permanently-unique DefiLlama pool id
+      // so `Protocol.id` is always unique for React keys/selection, while
+      // captain-presence.tsx recovers the original slug by splitting on `__`.
+      const id = `${slug}__${o.id}`;
       return {
-        id: slug,
+        id,
         name: SOURCE_DISPLAY_NAMES[o.source_id] ?? o.source?.name ?? o.source_id,
         apy: o.total_apy,
         tvl: formatTvl(o.tvl),

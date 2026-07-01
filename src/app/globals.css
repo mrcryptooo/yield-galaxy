@@ -3,10 +3,28 @@
 :root {
   --bg: #0A0E1A;
   --solar: #F6A04D;
-  --hud-text: rgba(245, 240, 235, 0.45);
-  --hud-dim: rgba(245, 240, 235, 0.22);
-  --hud-accent: rgba(246, 160, 77, 0.5);
-  --hud-glow: rgba(246, 160, 77, 0.08);
+  --hud-text: rgba(245, 240, 235, 0.72);
+  --hud-dim: rgba(245, 240, 235, 0.4);
+  --hud-accent: rgba(246, 160, 77, 0.85);
+  --hud-glow: rgba(246, 160, 77, 0.14);
+
+  /* Typography scale — Task 2: complete redesign, larger + stronger hierarchy */
+  --fs-micro: 11px;   /* metadata, tags, timestamps */
+  --fs-caption: 12px; /* secondary labels */
+  --fs-label: 13px;   /* section labels, nav */
+  --fs-body: 15px;    /* primary readable text, values */
+  --fs-value: 17px;   /* numbers: APY, TVL, scores */
+  --fs-title: 20px;   /* card / panel titles */
+  --fs-hero: 26px;    /* planet names, headline numbers */
+
+  /* Glass system — Task 3: every floating text lives on glass */
+  --glass-bg: rgba(12, 16, 28, 0.62);
+  --glass-bg-strong: rgba(12, 16, 28, 0.8);
+  --glass-border: rgba(246, 160, 77, 0.16);
+  --glass-border-strong: rgba(246, 160, 77, 0.28);
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.45), 0 0 24px rgba(246, 160, 77, 0.05);
+  --glass-blur: 18px;
+  --glass-radius: 14px;
 }
 
 body {
@@ -14,6 +32,7 @@ body {
   padding: 0;
   background: var(--bg);
   overflow: hidden;
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
 }
 
 canvas {
@@ -21,36 +40,104 @@ canvas {
   height: 100% !important;
 }
 
+/* ---------- Typography hierarchy ---------- */
+
 .hud-label {
   font-family: var(--font-geist-mono), 'Courier New', monospace;
-  font-size: 10px;
-  font-weight: 500;
-  letter-spacing: 0.14em;
+  font-size: var(--fs-caption);
+  font-weight: 600;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--hud-accent);
 }
 
 .hud-value {
   font-family: var(--font-geist-mono), 'Courier New', monospace;
-  font-size: 12px;
-  font-weight: 400;
-  letter-spacing: 0.04em;
+  font-size: var(--fs-value);
+  font-weight: 500;
+  letter-spacing: 0.01em;
   color: var(--hud-text);
+  font-variant-numeric: tabular-nums;
 }
 
 .hud-title {
   font-family: var(--font-geist-sans), system-ui, sans-serif;
-  font-size: 12px;
+  font-size: var(--fs-title);
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  line-height: 1.3;
+  color: rgba(245, 240, 235, 0.92);
+}
+
+.hud-body {
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  font-size: var(--fs-body);
   font-weight: 400;
-  letter-spacing: 0.03em;
-  color: rgba(245, 240, 235, 0.5);
+  line-height: 1.6;
+  letter-spacing: 0.01em;
+  color: var(--hud-text);
+}
+
+.hud-micro {
+  font-family: var(--font-geist-mono), 'Courier New', monospace;
+  font-size: var(--fs-micro);
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  color: var(--hud-dim);
 }
 
 .hud-glow {
-  text-shadow: 0 0 10px rgba(246, 160, 77, 0.18);
+  text-shadow: 0 0 12px rgba(246, 160, 77, 0.35);
+}
+
+/* ---------- Glass system (Task 3) ---------- */
+
+.glass-panel {
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
+  border-radius: var(--glass-radius);
+  box-shadow: var(--glass-shadow);
+}
+
+.glass-panel-strong {
+  background: var(--glass-bg-strong);
+  backdrop-filter: blur(calc(var(--glass-blur) + 4px));
+  -webkit-backdrop-filter: blur(calc(var(--glass-blur) + 4px));
+  border: 1px solid var(--glass-border-strong);
+  border-radius: var(--glass-radius);
+  box-shadow: var(--glass-shadow);
+}
+
+.glass-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
+}
+
+.glass-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--glass-border-strong);
+  background: rgba(16, 20, 34, 0.74);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.5), 0 0 28px rgba(246, 160, 77, 0.1);
 }
 
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(4px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes blink {
+  0%, 92%, 100% { transform: scaleY(1); }
+  95% { transform: scaleY(0.05); }
+}
+
+@keyframes idleFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
 }

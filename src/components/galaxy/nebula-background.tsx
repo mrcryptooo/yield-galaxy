@@ -1,21 +1,52 @@
 'use client';
 
-import { useThree } from '@react-three/fiber';
+import { useRef } from 'react';
+import { useThree, useFrame } from '@react-three/fiber';
 import { useTexture } from '@react-three/drei';
-import { EquirectangularReflectionMapping } from 'three';
+import { EquirectangularReflectionMapping, BackSide, type Mesh, type Texture } from 'three';
 
 export function NebulaBackground() {
   const { scene } = useThree();
 
-  try {
-    const texture = useTexture('/assets/backgrounds/nebula-panorama.webp');
-    texture.mapping = EquirectangularReflectionMapping;
-    texture.rotation = Math.PI * 0.8;
-    scene.background = texture;
-    scene.backgroundIntensity = 0.55;
-  } catch {
-    // Fallback: solid deep space
-  }
+  // useTexture suspends on first mount. Calling useFrame (or any hook) after
+  // it in the SAME component means the suspended render and the resumed
+  // render register a different number of hooks for this fiber, which is
+  // exactly the "change in the order of Hooks" error. Fix: this component
+  // only calls the suspending hook, then hands the resolved texture down as
+  // a plain prop to a child that owns useFrame/useRef — the child never
+  // suspends, so its hook list is always identical between renders.
+  const texture = useTexture('/assets/backgrounds/nebula-panorama.webp');
 
-  return null;
+  texture.mapping = EquirectangularReflectionMapping;
+  texture.rotation = Math.PI * 0.8;
+  scene.background = texture;
+  scene.backgroundIntensity = 0.62;
+
+  return <NebulaLayers texture={texture} />;
+}
+
+// Second + third nebula layers, mapped onto huge inverted spheres and
+// rotated independently — gives the background genuine parallax depth
+// instead of a single flat panorama, and pushes the sense of scale outward.
+function NebulaLayers({ texture }: { texture: Texture }) {
+  const parallaxRef = useRef<Mesh>(null);
+  const deepRef = useRef<Mesh>(null);
+
+  useFrame((_, delta) => {
+    if (parallaxRef.current) parallaxRef.current.rotation.y += delta * 0.0025;
+    if (deepRef.current) deepRef.current.rotation.y -= delta * 0.0009;
+  });
+
+  return (
+    <>
+      <mesh ref={parallaxRef} scale={-1}>
+        <sphereGeometry args={[140, 48, 48]} />
+        <meshBasicMaterial map={texture} side={BackSide} transparent opacity={0.22} depthWrite={false} toneMapped={false} />
+      </mesh>
+      <mesh ref={deepRef} scale={-1} rotation={[0, Math.PI * 0.4, 0]}>
+        <sphereGeometry args={[190, 32, 32]} />
+        <meshBasicMaterial map={texture} side={BackSide} transparent opacity={0.1} depthWrite={false} toneMapped={false} />
+      </mesh>
+    </>
+  );
 }

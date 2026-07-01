@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import Image from 'next/image';
 import { useGalaxyStore } from '@/stores/galaxy-store';
 import { useJourneyStore } from '@/stores/journey-store';
@@ -9,6 +9,18 @@ import { useExecutionStore } from '@/stores/execution-store';
 import { CAPTAIN_LINES } from '@/components/galaxy/focus-cameras';
 import { CAPTAIN_PROTOCOL_LINES } from '@/components/galaxy/planet-data';
 import { CAPTAIN_JOURNEY_LINES } from '@/lib/route-templates';
+
+// Random idle chatter — only ever shown when nothing else has anything to say
+const IDLE_DIALOGUE = [
+  "All quiet in the Solstice sector, Explorer.",
+  "Scanning for fresh yield signatures...",
+  "The galaxy never stops moving. Neither do we.",
+  "Whenever you're ready, I can plot a route.",
+  "Every planet out there has a story. Ask me anything.",
+  "Systems nominal. Standing by for your next move.",
+  "I like this view. Feels like home.",
+  "Let me know if you want the safest path or the fastest one.",
+];
 
 const CAPTAIN_IMAGES: Record<string, string> = {
   idle: '/assets/captain/captain-idle.webp',
@@ -29,6 +41,7 @@ export function CaptainPresence({ destinationCount }: { destinationCount?: numbe
   const containerRef = useRef<HTMLDivElement>(null);
   const frameRef = useRef(0);
   const focused = useGalaxyStore((s) => s.focused);
+  const hovered = useGalaxyStore((s) => s.hovered);
   const selectedProtocol = useGalaxyStore((s) => s.selectedProtocol);
   const activeRoute = useJourneyStore((s) => s.activeRoute);
   const completed = useJourneyStore((s) => s.completed);
@@ -37,6 +50,22 @@ export function CaptainPresence({ destinationCount }: { destinationCount?: numbe
   const briefing = useCaptainStore((s) => s.briefing);
   const executionSpeech = useExecutionStore((s) => s.executionSpeech);
   const executionPlan = useExecutionStore((s) => s.plan);
+
+  // Idle dialogue: fires every 20-40s. The if/else priority chain below only
+  // ever surfaces it as the last resort, after focus/route/protocol/hover/briefing.
+  const [idleLine, setIdleLine] = useState<string | null>(null);
+  useEffect(() => {
+    let timeout: ReturnType<typeof setTimeout>;
+    const schedule = () => {
+      const delay = 20000 + Math.random() * 20000;
+      timeout = setTimeout(() => {
+        setIdleLine(IDLE_DIALOGUE[Math.floor(Math.random() * IDLE_DIALOGUE.length)]);
+        schedule();
+      }, delay);
+    };
+    schedule();
+    return () => clearTimeout(timeout);
+  }, []);
 
   let speech: string;
   let stateLabel: string = '';
@@ -56,13 +85,22 @@ export function CaptainPresence({ destinationCount }: { destinationCount?: numbe
     speech = dynamicLines?.[node.action] ?? staticLines?.[node.action] ?? `Navigating to ${node.label}.`;
     stateLabel = captainState === 'talking' ? 'NARRATING' : captainState === 'thinking' ? 'PLOTTING' : 'READY';
   } else if (selectedProtocol) {
-    speech = CAPTAIN_PROTOCOL_LINES[selectedProtocol] ?? 'Scanning this protocol...';
+    // Protocol.id is `${slug}__${opportunityId}` for React-key/selection
+    // uniqueness (see build-planet-data.ts); CAPTAIN_PROTOCOL_LINES is keyed
+    // by the slug alone, so recover it by splitting on the separator. Ids
+    // without `__` (e.g. FALLBACK_PLANET_DATA) pass through unchanged.
+    const protocolSlug = selectedProtocol.split('__')[0];
+    speech = CAPTAIN_PROTOCOL_LINES[protocolSlug] ?? 'Scanning this protocol...';
   } else if (focused) {
     speech = CAPTAIN_LINES[focused] ?? 'Interesting choice, Explorer.';
   } else if (captainSpeech) {
     speech = captainSpeech.text;
     if (captainSpeech.tone === 'cautious') stateLabel = 'ALERT';
     else if (captainSpeech.tone === 'confident') stateLabel = 'ANALYSIS';
+  } else if (hovered) {
+    speech = `Take a closer look at ${hovered}?`;
+  } else if (idleLine) {
+    speech = idleLine;
   } else {
     speech = `Exploring Yield Galaxy. ${destinationCount ?? 16} destinations detected.`;
   }
@@ -111,8 +149,8 @@ export function CaptainPresence({ destinationCount }: { destinationCount?: numbe
       {/* State indicator */}
       {(isJourneyActive || hasBriefing) && stateLabel && (
         <div style={{
-          marginBottom: '6px', marginLeft: '40px',
-          fontSize: '8px',
+          marginBottom: '8px', marginLeft: '46px',
+          fontSize: '11px', fontWeight: 600,
           fontFamily: 'var(--font-geist-mono), monospace',
           letterSpacing: '0.14em',
           color: completed
@@ -128,13 +166,15 @@ export function CaptainPresence({ destinationCount }: { destinationCount?: numbe
         </div>
       )}
 
-      {/* Speech */}
+      {/* Speech — glass-backed, larger, always readable over the galaxy */}
       <div
         key={speech}
+        className="glass-panel"
         style={{
-          marginBottom: '10px', marginLeft: '40px', maxWidth: '210px',
-          fontSize: '12px', lineHeight: '1.7', fontWeight: 300,
-          letterSpacing: '0.02em',
+          marginBottom: '12px', marginLeft: '46px', maxWidth: '260px',
+          padding: '12px 16px',
+          fontSize: 'var(--fs-body)', lineHeight: '1.6', fontWeight: 400,
+          letterSpacing: '0.01em',
           color: speechColor,
           textShadow: completed
             ? '0 0 18px rgba(246,160,77,0.15)'
@@ -147,26 +187,27 @@ export function CaptainPresence({ destinationCount }: { destinationCount?: numbe
 
       <div ref={containerRef} style={{ position: 'relative' }}>
         <div style={{
-          position: 'absolute', top: '-25px', right: '-35px',
-          width: '150px', height: '150px', borderRadius: '50%',
-          background: `radial-gradient(circle at 30% 40%, rgba(246,160,77,${completed ? 0.14 : 0.08}) 0%, transparent 60%)`,
+          position: 'absolute', top: '-30px', right: '-45px',
+          width: '190px', height: '190px', borderRadius: '50%',
+          background: `radial-gradient(circle at 30% 40%, rgba(246,160,77,${completed ? 0.16 : 0.1}) 0%, transparent 60%)`,
           transition: 'background 1s ease',
         }} />
         <div style={{
-          position: 'absolute', bottom: '-20px', left: '25px',
-          width: '120px', height: '50px', borderRadius: '50%',
-          background: 'radial-gradient(ellipse, rgba(246,160,77,0.05) 0%, transparent 70%)',
+          position: 'absolute', bottom: '-25px', left: '30px',
+          width: '150px', height: '60px', borderRadius: '50%',
+          background: 'radial-gradient(ellipse, rgba(246,160,77,0.06) 0%, transparent 70%)',
         }} />
         <Image
           src={captainImage}
           alt="Captain Whiskers"
-          width={500} height={500}
+          width={600} height={600}
           style={{
-            width: '240px', height: '240px', objectFit: 'contain',
-            position: 'relative', opacity: completed ? 1 : 0.92,
+            width: '300px', height: '300px', objectFit: 'contain',
+            position: 'relative', opacity: completed ? 1 : 0.95,
+            animation: hovered || focused || activeRoute ? 'none' : 'blink 6s ease-in-out infinite',
             filter: completed
-              ? 'drop-shadow(0 2px 28px rgba(246,160,77,0.18)) drop-shadow(2px 0 14px rgba(246,160,77,0.1))'
-              : 'drop-shadow(0 2px 24px rgba(246,160,77,0.1)) drop-shadow(2px 0 12px rgba(246,160,77,0.05))',
+              ? 'drop-shadow(0 2px 32px rgba(246,160,77,0.22)) drop-shadow(2px 0 16px rgba(246,160,77,0.12))'
+              : 'drop-shadow(0 2px 28px rgba(246,160,77,0.12)) drop-shadow(2px 0 14px rgba(246,160,77,0.06))',
             transition: 'filter 1s ease, opacity 1s ease',
           }}
           priority

@@ -21,21 +21,24 @@ export function CommsConsole({ signals }: { signals?: CommsSignal[] }) {
 
   return (
     <div
+      className="glass-panel"
       style={{
         position: 'fixed',
-        top: '50%',
-        right: '16px',
+        top: '26%',
+        right: '20px',
         transform: 'translateY(-50%)',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'flex-end',
-        gap: '10px',
+        gap: '12px',
         zIndex: 10,
         pointerEvents: 'none',
+        padding: '16px 18px',
+        animation: 'fadeIn 0.8s ease-out',
       }}
     >
-      <span className="hud-label" style={{ marginBottom: '2px', marginRight: '2px' }}>
-        COMMS
+      <span className="hud-label" style={{ marginBottom: '2px' }}>
+        Comms
       </span>
 
       {items.map((s, i) => (
@@ -45,7 +48,7 @@ export function CommsConsole({ signals }: { signals?: CommsSignal[] }) {
       <div style={{
         width: '40px',
         height: '1px',
-        background: 'linear-gradient(90deg, transparent, rgba(246,160,77,0.1))',
+        background: 'linear-gradient(90deg, transparent, rgba(246,160,77,0.15))',
         margin: '2px 0',
       }} />
 
@@ -58,7 +61,7 @@ export function CommsConsole({ signals }: { signals?: CommsSignal[] }) {
 function Signal({ title, value, tag, dimmed }: {
   title: string; value: string; tag: string; dimmed?: boolean;
 }) {
-  const opacity = dimmed ? 0.6 : 1;
+  const opacity = dimmed ? 0.65 : 1;
   return (
     <div
       style={{
@@ -68,18 +71,22 @@ function Signal({ title, value, tag, dimmed }: {
         opacity,
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', justifyContent: 'flex-end' }}>
-        <span className="hud-title" style={{ color: dimmed ? 'rgba(245,240,235,0.25)' : 'rgba(245,240,235,0.4)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'flex-end' }}>
+        <span style={{ fontSize: 'var(--fs-caption)', fontWeight: 500, color: dimmed ? 'rgba(245,240,235,0.4)' : 'rgba(245,240,235,0.7)' }}>
           {title}
         </span>
-        <span className="hud-value hud-glow" style={{ color: dimmed ? 'rgba(246,160,77,0.2)' : 'rgba(246,160,77,0.4)' }}>
+        <span className="hud-glow" style={{
+          fontSize: 'var(--fs-body)', fontWeight: 600, fontFamily: 'var(--font-geist-mono), monospace',
+          color: dimmed ? 'rgba(246,160,77,0.4)' : 'rgba(246,160,77,0.9)',
+        }}>
           {value}
         </span>
       </div>
       <span style={{
-        fontSize: '7px',
-        letterSpacing: '0.15em',
-        color: 'rgba(246,160,77,0.15)',
+        fontSize: '10px',
+        fontWeight: 500,
+        letterSpacing: '0.14em',
+        color: 'rgba(246,160,77,0.3)',
         fontFamily: 'var(--font-geist-mono), monospace',
       }}>
         {tag}
