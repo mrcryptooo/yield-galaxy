@@ -24,7 +24,7 @@ Final UX + Visual Polish (complete)
 **Project Health:** Stable. Working tree clean, no uncommitted changes.
 
 **Current Git Commit:**
-`189803f6c1c242914e6f73c813b65b3f3048df0a` — "Final immersion pass: hover story, focus mode darkening, deeper Captain dialogue, unified motion language"
+`2706d171c3903d2e5949fb23e72faffff413bb87` — "Mission Experience redesign: galaxy stays clean, camera guides, Mission Panel tells the story"
 
 **Current Branch:**
 `main` (up to date with `origin/main`)
@@ -68,8 +68,8 @@ Unified CSS Grid app shell (`app-shell.tsx`): persistent Top Bar (logo/wordmark/
 **Captain** (`src/lib/captain/` + `hud/captain-presence.tsx`)
 Pure-function intelligence pipeline: `analysis.ts → insights.ts → risk.ts → recommendations.ts → speech.ts → summary.ts` (orchestrated by `buildBriefing()`). Rendered via 5 state images (idle/thinking/talking/success/alert) driven by `journey-store` + `execution-store` + `captain-store`.
 
-**Journey** (`src/components/galaxy/journey-player.tsx`, `src/lib/route-templates.ts`, `src/lib/route-engine.ts`, `hud/mission-panel.tsx`)
-Auto-play cinematic playback of a route: fly → dwell → next-step timer loop, drives `journey-store` and camera `journey-orbit` phase, with per-step Captain narration lines. Presented via the Bottom Panel's Mission Panel (checkmarked completed steps, glowing current step, locked future steps, Explorer Badge on completion) — the panel is always present, showing an idle prompt when no route is active.
+**Journey** (`src/components/galaxy/journey-player.tsx`, `src/lib/route-templates.ts`, `src/lib/route-engine.ts`, `galaxy/mission-focus-sync.tsx`, `lib/mission-narration.ts`, `hud/mission-panel.tsx`)
+Auto-play cinematic playback of a route: fly → dwell → next-step timer loop (slowed for cinematic pacing: 3.4s fly / 7.5s dwell), drives `journey-store` and camera `journey-orbit` phase. The galaxy itself draws NOTHING mission-related (route-trails.tsx was deleted) — `mission-focus-sync.tsx` instead syncs the current step to `galaxy-store`'s focused/focusedStation, so the camera's destination is highlighted via the same Focus Mode a manual click triggers (dim + darken + Left Panel update). The Mission Panel (Bottom Panel, always present) is the only mission UI: step tracker with checkmarks/glow/lock states, a per-step "Captain says / estimated time / why it matters" story strip (`mission-narration.ts` supplies estimate+reason), route-wide APY/risk, and an Explorer Badge on completion.
 
 **Optimizer** (`src/lib/optimizer/`)
 `opportunity-graph.ts` (directed graph) → DFS path search → `constraints.ts` filtering → `scorer.ts` multi-factor scoring → `simulator.ts`. `optimizer.ts` returns top 8 scored routes. Backed by `optimizer-store.ts`.
