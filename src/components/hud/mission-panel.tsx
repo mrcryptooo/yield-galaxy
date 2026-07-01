@@ -90,7 +90,7 @@ export function MissionPanel({ planetData }: { planetData: Record<string, Planet
                   border: isCurrent ? '2px solid rgba(246,160,77,0.9)' : isCompleted ? '1px solid rgba(246,160,77,0.4)' : '1px solid rgba(245,240,235,0.1)',
                   boxShadow: isCurrent ? '0 0 18px rgba(246,160,77,0.55), 0 0 32px rgba(246,160,77,0.2)' : isCompleted ? '0 0 8px rgba(246,160,77,0.2)' : 'none',
                   transition: 'all 0.6s cubic-bezier(0.16,1,0.3,1)',
-                  animation: isCompleted ? 'fadeIn 0.5s ease-out' : undefined,
+                  animation: isCompleted ? 'fadeIn var(--dur-slow) var(--ease-premium) both' : undefined,
                 }}>
                   {isCompleted ? (
                     <span style={{ fontSize: '13px', color: 'rgba(246,160,77,0.95)', fontWeight: 700 }}>✓</span>

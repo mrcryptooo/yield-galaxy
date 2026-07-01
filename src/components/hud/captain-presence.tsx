@@ -41,14 +41,24 @@ const IDLE_DIALOGUE = [
   "Loopscale runs tighter risk controls than most. Worth knowing.",
 ];
 
-// Station explanations for hover — mirrors CAPTAIN_LINES (planets) so every
-// hoverable body in the galaxy gets a real explanation, not a placeholder.
+// Station explanations for hover — short, one glance. Mirrors CAPTAIN_LINES
+// (planets) so every hoverable body in the galaxy gets a real explanation.
 const STATION_LINES: Record<string, string> = {
   Kamino: 'Kamino — the lending hub. Deposit, borrow, and loop for leveraged yield.',
   Orca: 'Orca — liquidity pools and swaps. Higher reward, impermanent loss risk.',
   Raydium: 'Raydium — concentrated liquidity and AMM pairs. Fast, efficient, volatile.',
   Loopscale: 'Loopscale — structured lending with tighter risk controls.',
   Exponent: 'Exponent — where PT and YT markets live. Fixed yield or leveraged upside.',
+};
+
+// Focus explanations — fuller: what it is, whether it's safe, what to do.
+// One extra beat of real guidance instead of just re-stating the hover line.
+const STATION_FOCUS_LINES: Record<string, string> = {
+  Kamino: 'Kamino — the lending hub. Deposit, borrow, and loop for leveraged yield. Grade A-B liquidity here — one of the safer docks in the sector. Good place to start if you\'re new.',
+  Orca: 'Orca — liquidity pools and swaps. Yields run hot, but impermanent loss is real if the pair moves. Worth it if you believe both sides hold steady.',
+  Raydium: 'Raydium — concentrated liquidity and AMM pairs. Fast and efficient, but volatile — check the pool\'s TVL before committing size.',
+  Loopscale: 'Loopscale — structured lending with tighter risk controls than most. A solid pick if safety matters more than raw yield.',
+  Exponent: 'Exponent — home of PT and YT markets. PT locks a fixed rate to maturity; YT is leveraged upside with more risk. Know which one you want before minting.',
 };
 
 const CAPTAIN_IMAGES: Record<string, string> = {
@@ -156,12 +166,23 @@ export function CaptainPresence({ destinationCount, bestOpportunitySummary, plan
     const protocolSlug = selectedProtocol.split('__')[0];
     speech = CAPTAIN_PROTOCOL_LINES[protocolSlug] ?? 'Scanning this protocol...';
   } else if (focused) {
-    // Explain the planet AND why its numbers matter, not just flavor text.
+    // Explain the planet, why its numbers matter, and what's safe to do —
+    // not just flavor text.
     const info = planetData?.[focused];
     const base = CAPTAIN_LINES[focused] ?? 'Interesting choice, Explorer.';
-    speech = info ? `${base} TVL ${info.tvl}, best yield ${info.avgApy} across ${info.protocolCount} protocol${info.protocolCount === 1 ? '' : 's'}.` : base;
+    if (info) {
+      const best = info.protocols[0];
+      const safety = best && ['A', 'B'].includes(best.risk)
+        ? `${best.name} looks like the safest entry.`
+        : best
+          ? `${best.name} leads on yield, but mind the ${best.risk}-grade risk.`
+          : '';
+      speech = `${base} TVL ${info.tvl}, best yield ${info.avgApy} across ${info.protocolCount} protocol${info.protocolCount === 1 ? '' : 's'}. ${safety}`;
+    } else {
+      speech = base;
+    }
   } else if (focusedStation) {
-    speech = STATION_LINES[focusedStation] ?? `Docking at ${focusedStation}. Let's see what's here.`;
+    speech = STATION_FOCUS_LINES[focusedStation] ?? STATION_LINES[focusedStation] ?? `Docking at ${focusedStation}. Let's see what's here.`;
   } else if (captainSpeech) {
     speech = captainSpeech.text;
     if (captainSpeech.tone === 'cautious') stateLabel = 'ALERT';
@@ -241,7 +262,7 @@ export function CaptainPresence({ destinationCount, bestOpportunitySummary, plan
               : captainState === 'talking'
                 ? 'rgba(246,160,77,0.35)'
                 : 'rgba(245,240,235,0.18)',
-          animation: 'fadeIn 0.4s ease-out',
+          animation: 'fadeIn var(--dur-base) var(--ease-premium) both',
         }}>
           {stateLabel}
         </div>
@@ -260,7 +281,7 @@ export function CaptainPresence({ destinationCount, bestOpportunitySummary, plan
           textShadow: completed
             ? '0 0 18px rgba(246,160,77,0.15)'
             : '0 0 12px rgba(246,160,77,0.06)',
-          animation: 'fadeIn 0.6s ease-out',
+          animation: 'fadeIn var(--dur-slow) var(--ease-premium) both',
           boxSizing: 'border-box',
         }}
       >

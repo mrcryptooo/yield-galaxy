@@ -1,9 +1,13 @@
 'use client';
 
-import { useRef } from 'react';
+import { useRef, useEffect } from 'react';
 import { useThree, useFrame } from '@react-three/fiber';
 import { useTexture } from '@react-three/drei';
 import { EquirectangularReflectionMapping, BackSide, type Mesh, type Texture } from 'three';
+import { useGalaxyStore } from '@/stores/galaxy-store';
+
+const BASE_INTENSITY = 0.62;
+const FOCUSED_INTENSITY = 0.4;
 
 export function NebulaBackground() {
   const { scene } = useThree();
@@ -17,10 +21,15 @@ export function NebulaBackground() {
   // suspends, so its hook list is always identical between renders.
   const texture = useTexture('/assets/backgrounds/nebula-panorama.webp');
 
-  texture.mapping = EquirectangularReflectionMapping;
-  texture.rotation = Math.PI * 0.8;
-  scene.background = texture;
-  scene.backgroundIntensity = 0.62;
+  // One-time scene setup belongs in an effect, not the render body — this is
+  // the one instance in this file that's a genuine fix rather than idiomatic
+  // R3F per-frame mutation (which NebulaLayers' useFrame below still owns).
+  useEffect(() => {
+    texture.mapping = EquirectangularReflectionMapping;
+    texture.rotation = Math.PI * 0.8;
+    scene.background = texture;
+    scene.backgroundIntensity = BASE_INTENSITY;
+  }, [scene, texture]);
 
   return <NebulaLayers texture={texture} />;
 }
@@ -31,10 +40,19 @@ export function NebulaBackground() {
 function NebulaLayers({ texture }: { texture: Texture }) {
   const parallaxRef = useRef<Mesh>(null);
   const deepRef = useRef<Mesh>(null);
+  const { scene } = useThree();
+  const focused = useGalaxyStore((s) => s.focused);
+  const focusedStation = useGalaxyStore((s) => s.focusedStation);
 
   useFrame((_, delta) => {
     if (parallaxRef.current) parallaxRef.current.rotation.y += delta * 0.0025;
     if (deepRef.current) deepRef.current.rotation.y -= delta * 0.0009;
+
+    // Focus Mode (Task 2): the world softly darkens behind whatever is
+    // focused, so the eye reads "this is what I'm looking at" — restores
+    // just as smoothly when focus clears.
+    const targetIntensity = (focused || focusedStation) ? FOCUSED_INTENSITY : BASE_INTENSITY;
+    scene.backgroundIntensity += (targetIntensity - scene.backgroundIntensity) * delta * 2;
   });
 
   return (

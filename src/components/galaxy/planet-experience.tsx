@@ -136,7 +136,7 @@ function ProtocolNode({ protocol, index, total, orbitRadius, isSelected, anySele
           <div className="glass-panel-strong" style={{
             width: '190px',
             padding: '14px',
-            animation: 'fadeIn 0.5s ease-out',
+            animation: 'fadeIn var(--dur-slow) var(--ease-premium) both',
           }}>
             <div style={{
               fontSize: '14px', fontWeight: 600, letterSpacing: '0.02em',

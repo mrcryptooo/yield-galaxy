@@ -41,6 +41,15 @@
   --panel-padding: 20px;
   --panel-blur: 22px;
   --panel-shadow: 0 8px 32px rgba(0, 0, 0, 0.45), 0 0 24px rgba(246, 160, 77, 0.05);
+
+  /* One motion language (Task 4): every transition/animation in the app
+     draws from this single easing + duration scale instead of ad-hoc
+     values, so hover/focus/panels/buttons/cards all feel like one product. */
+  --ease-premium: cubic-bezier(0.16, 1, 0.3, 1);
+  --dur-micro: 0.15s;  /* button hover/press */
+  --dur-fast: 0.25s;   /* small state changes */
+  --dur-base: 0.35s;   /* fades, label reveals, panel content */
+  --dur-slow: 0.6s;    /* focus transitions, mission step changes */
 }
 
 body {
@@ -184,7 +193,16 @@ canvas {
   border: 1px solid var(--glass-border);
   border-radius: 12px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
-  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
+  transition: transform var(--dur-fast) var(--ease-premium), border-color var(--dur-fast) var(--ease-premium), box-shadow var(--dur-fast) var(--ease-premium), background var(--dur-fast) var(--ease-premium);
+}
+
+/* Micro-interactions (Task 6): every clickable element gets the same
+   press/hover feedback curve instead of feeling mechanical or instant. */
+button {
+  transition: transform var(--dur-micro) var(--ease-premium), background var(--dur-fast) var(--ease-premium), border-color var(--dur-fast) var(--ease-premium), color var(--dur-fast) var(--ease-premium), opacity var(--dur-fast) var(--ease-premium);
+}
+button:active {
+  transform: scale(0.96);
 }
 
 .glass-card:hover {

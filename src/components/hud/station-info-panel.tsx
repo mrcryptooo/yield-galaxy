@@ -22,7 +22,7 @@ export function StationInfoPanel() {
   if (!info) return null;
 
   return (
-    <div style={{ pointerEvents: 'auto', animation: 'fadeIn 0.4s ease-out', width: '100%' }}>
+    <div style={{ pointerEvents: 'auto', animation: 'fadeIn var(--dur-base) var(--ease-premium) both', width: '100%' }}>
       <div style={{
         fontSize: 'var(--fs-title)', fontWeight: 600, letterSpacing: '0.03em',
         color: info.color,

@@ -85,7 +85,7 @@ export function RouteSelector({ opportunities }: { opportunities?: Opportunity[]
               letterSpacing: '0.08em',
               color: riskPreference === pref ? 'rgba(246,160,77,0.9)' : 'rgba(245,240,235,0.4)',
               cursor: 'pointer',
-              transition: 'all 0.2s ease',
+              transition: 'all var(--dur-fast) var(--ease-premium)',
             }}
           >
             {RISK_LABELS[pref]}
@@ -108,7 +108,7 @@ export function RouteSelector({ opportunities }: { opportunities?: Opportunity[]
           cursor: 'pointer',
           pointerEvents: 'auto',
           marginBottom: '4px',
-          transition: 'background 0.2s ease',
+          transition: 'background var(--dur-fast) var(--ease-premium)',
         }}
       >
         {result ? 'RE-OPTIMIZE' : 'FIND ROUTES'}

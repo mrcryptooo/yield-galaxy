@@ -62,7 +62,7 @@ export function TopBar() {
             fontFamily: 'var(--font-geist-mono), monospace',
             fontSize: 'var(--fs-caption)', letterSpacing: '0.1em', fontWeight: 600,
             textTransform: 'uppercase',
-            transition: 'color 0.25s ease, background 0.25s ease',
+            transition: 'color var(--dur-fast) var(--ease-premium), background var(--dur-fast) var(--ease-premium)',
           }}
         >
           Galaxy
@@ -77,7 +77,7 @@ export function TopBar() {
             fontFamily: 'var(--font-geist-mono), monospace',
             fontSize: 'var(--fs-caption)', letterSpacing: '0.1em', fontWeight: 600,
             textTransform: 'uppercase',
-            transition: 'color 0.25s ease, background 0.25s ease',
+            transition: 'color var(--dur-fast) var(--ease-premium), background var(--dur-fast) var(--ease-premium)',
           }}
         >
           List

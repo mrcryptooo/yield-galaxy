@@ -93,13 +93,17 @@ function Planet({ name }: { name: 'USX' | 'eUSX' | 'SLX' | 'stSLX' }) {
 
   const focused = useGalaxyStore((s) => s.focused);
   const hovered = useGalaxyStore((s) => s.hovered);
+  const focusedStation = useGalaxyStore((s) => s.focusedStation);
   const setFocused = useGalaxyStore((s) => s.setFocused);
   const setHovered = useGalaxyStore((s) => s.setHovered);
 
   const isMe = focused === name;
   const isMeHovered = hovered === name;
-  const somethingFocused = focused !== null;
-  const dimmed = somethingFocused && !isMe;
+  // Focus Mode (Task 2): ANY focused body — planet or station — should dim
+  // every other object in the scene, not just sibling planets, so the eye
+  // reads "this is what I'm looking at" regardless of what was clicked.
+  const somethingElseFocused = (focused !== null && !isMe) || focusedStation !== null;
+  const dimmed = somethingElseFocused;
 
   // Spring targets
   const springScale = useRef(1);
@@ -188,10 +192,10 @@ function Planet({ name }: { name: 'USX' | 'eUSX' | 'SLX' | 'stSLX' }) {
         </mesh>
       ))}
 
-      {/* Hover label — glass-backed, premium */}
+      {/* Hover label — glass-backed, fades in smoothly instead of popping */}
       {isMeHovered && !isMe && (
         <Html center distanceFactor={18} style={{ pointerEvents: 'none' }} position={[0, spriteSize * 0.4, 0]}>
-          <div className="glass-panel" style={{ textAlign: 'center', padding: '8px 18px' }}>
+          <div className="glass-panel" style={{ textAlign: 'center', padding: '8px 18px', animation: 'fadeIn 0.35s var(--ease-premium) both' }}>
             <div style={{
               fontSize: 'var(--fs-title)',
               fontWeight: 600,

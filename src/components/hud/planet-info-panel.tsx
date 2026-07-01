@@ -19,7 +19,7 @@ export function PlanetInfoPanel({ planetData }: { planetData: Record<string, Pla
   if (!data) return null;
 
   return (
-    <div style={{ pointerEvents: 'auto', animation: 'fadeIn 0.4s ease-out', width: '100%' }}>
+    <div style={{ pointerEvents: 'auto', animation: 'fadeIn var(--dur-base) var(--ease-premium) both', width: '100%' }}>
       <div style={{
         fontSize: 'var(--fs-title)', fontWeight: 600, letterSpacing: '0.03em',
         color: 'rgba(246,160,77,0.95)',
@@ -50,7 +50,7 @@ export function PlanetInfoPanel({ planetData }: { planetData: Record<string, Pla
           borderRadius: '8px', padding: '7px 0',
           fontSize: '12px', fontWeight: 600, letterSpacing: '0.08em',
           color: 'rgba(246,160,77,0.9)',
-          transition: 'background 0.2s ease, border-color 0.2s ease',
+          transition: 'background var(--dur-fast) var(--ease-premium), border-color var(--dur-fast) var(--ease-premium)',
         }}
       >
         VIEW OPPORTUNITIES

@@ -77,7 +77,7 @@ export function ListView({ opportunities }: { opportunities?: Opportunity[] }) {
       borderRadius: 'var(--panel-radius)',
       overflow: 'auto',
       padding: '32px 32px 40px',
-      animation: 'fadeIn 0.35s cubic-bezier(0.16,1,0.3,1) both',
+      animation: 'fadeIn var(--dur-base) var(--ease-premium) both',
     }}>
       {/* Header */}
       <div style={{ maxWidth: '1180px', margin: '0 auto 28px' }}>
@@ -119,7 +119,7 @@ export function ListView({ opportunities }: { opportunities?: Opportunity[] }) {
               fontFamily: 'var(--font-geist-mono), monospace',
               color: sortKey === key ? 'rgba(246,160,77,0.95)' : 'rgba(245,240,235,0.45)',
               cursor: 'pointer', textTransform: 'uppercase',
-              transition: 'background 0.2s ease, color 0.2s ease',
+              transition: 'background var(--dur-fast) var(--ease-premium), color var(--dur-fast) var(--ease-premium)',
             }}
           >
             {label}{sortKey === key ? (sortAsc ? ' ↑' : ' ↓') : ''}
@@ -219,7 +219,7 @@ export function ListView({ opportunities }: { opportunities?: Opportunity[] }) {
                     letterSpacing: '0.1em',
                     color: 'rgba(246,160,77,0.85)',
                     cursor: 'pointer',
-                    transition: 'border-color 0.2s ease, color 0.2s ease, background 0.2s ease',
+                    transition: 'border-color var(--dur-fast) var(--ease-premium), color var(--dur-fast) var(--ease-premium), background var(--dur-fast) var(--ease-premium)',
                   }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.borderColor = 'rgba(246,160,77,0.5)';
@@ -244,7 +244,7 @@ export function ListView({ opportunities }: { opportunities?: Opportunity[] }) {
                       fontSize: 'var(--fs-caption)', fontWeight: 600,
                       color: 'rgba(245,240,235,0.55)',
                       cursor: 'pointer',
-                      transition: 'border-color 0.2s ease, color 0.2s ease',
+                      transition: 'border-color var(--dur-fast) var(--ease-premium), color var(--dur-fast) var(--ease-premium)',
                     }}
                     onMouseEnter={(e) => {
                       e.currentTarget.style.borderColor = 'rgba(245,240,235,0.35)';

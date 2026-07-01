@@ -47,8 +47,14 @@ function Station({ name }: { name: keyof typeof STATION_POSITIONS }) {
 
   const focusedStation = useGalaxyStore((s) => s.focusedStation);
   const setFocusedStation = useGalaxyStore((s) => s.setFocusedStation);
+  const hoveredStation = useGalaxyStore((s) => s.hoveredStation);
   const setHoveredStation = useGalaxyStore((s) => s.setHoveredStation);
+  const focused = useGalaxyStore((s) => s.focused);
   const isFocused = focusedStation === name;
+  const isHovered = hoveredStation === name;
+  // Focus Mode (Task 2): dim when ANY other body — planet or station — is
+  // focused, so the scene always reads "this one thing is what matters".
+  const dimmed = (focusedStation !== null && !isFocused) || focused !== null;
 
   const rhythm = useMemo(() => ({
     speed: 0.6 + Math.random() * 0.8,
@@ -59,12 +65,22 @@ function Station({ name }: { name: keyof typeof STATION_POSITIONS }) {
   }), []);
 
   const beaconRef = useRef(3 + Math.random() * 5);
+  // Hover Story (Task 1) + Focus Mode (Task 2): same spring-damped
+  // scale/glow language as planets, so every body in the galaxy reacts
+  // consistently instead of stations feeling inert.
+  const springScale = useRef(1);
+  const springGlow = useRef(1);
 
-  useFrame(({ clock }) => {
+  useFrame(({ clock }, delta) => {
     if (!groupRef.current || !lightRef.current) return;
     const t = clock.elapsedTime;
 
-    const pulse = Math.sin(t * rhythm.speed + rhythm.phase) * 0.012 + 1;
+    const targetScale = isFocused ? 1.1 : isHovered ? 1.12 : 1;
+    const targetGlow = isFocused ? 1.7 : dimmed ? 0.45 : isHovered ? 1.5 : 1;
+    springScale.current += (targetScale - springScale.current) * delta * 4;
+    springGlow.current += (targetGlow - springGlow.current) * delta * 3;
+
+    const pulse = Math.sin(t * rhythm.speed + rhythm.phase) * 0.012 + springScale.current;
     const floatY = Math.sin(t * rhythm.floatSpeed) * rhythm.floatAmp;
     groupRef.current.scale.setScalar(pulse);
     groupRef.current.position.y = pos[1] + floatY;
@@ -76,11 +92,11 @@ function Station({ name }: { name: keyof typeof STATION_POSITIONS }) {
     if (since >= 0 && since < 1.2) {
       beacon = since < 0.15 ? since / 0.15 : Math.max(0, 1 - (since - 0.15) / 1.05);
     }
-    lightRef.current.intensity = id.lightIntensity + beacon * 0.8;
+    lightRef.current.intensity = (id.lightIntensity + beacon * 0.8) * springGlow.current;
 
     if (glowRef.current) {
       const glowPulse = id.glowOpacity + Math.sin(t * 0.8 + rhythm.phase) * 0.008 + beacon * 0.02;
-      (glowRef.current.material as THREE.MeshBasicMaterial).opacity = glowPulse;
+      (glowRef.current.material as THREE.MeshBasicMaterial).opacity = Math.max(0, glowPulse * springGlow.current);
     }
   });
 
@@ -96,7 +112,7 @@ function Station({ name }: { name: keyof typeof STATION_POSITIONS }) {
           onPointerOut={() => { setHoveredStation(null); document.body.style.cursor = 'auto'; }}
         >
           <planeGeometry args={[spriteSize, spriteSize]} />
-          <meshBasicMaterial map={texture} transparent alphaTest={0.02} toneMapped={false} opacity={isFocused ? 1 : 0.97} />
+          <meshBasicMaterial map={texture} transparent alphaTest={0.02} toneMapped={false} opacity={isFocused ? 1 : dimmed ? 0.5 : 0.97} />
         </mesh>
       </Billboard>
 
@@ -118,7 +134,8 @@ function Station({ name }: { name: keyof typeof STATION_POSITIONS }) {
         <meshBasicMaterial color={id.light} transparent opacity={id.glowOpacity * 0.12} side={THREE.BackSide} />
       </mesh>
 
-      {/* Label — glass-backed, premium destination feel */}
+      {/* Label — glass-backed, fades brighter on hover/focus instead of a
+          hard opacity snap, matching the planet hover story. */}
       <Html center distanceFactor={14} style={{ pointerEvents: 'none' }} position={[0, -spriteSize * 0.42, 0]}>
         <div
           className="glass-panel"
@@ -126,6 +143,8 @@ function Station({ name }: { name: keyof typeof STATION_POSITIONS }) {
             textAlign: 'center',
             padding: '6px 14px',
             whiteSpace: 'nowrap',
+            opacity: dimmed ? 0.5 : 1,
+            transition: 'opacity var(--dur-base) var(--ease-premium)',
           }}
         >
           <div style={{
@@ -140,7 +159,7 @@ function Station({ name }: { name: keyof typeof STATION_POSITIONS }) {
             color: 'rgba(245,240,235,0.4)',
             marginTop: '2px', textTransform: 'uppercase',
           }}>
-            Station
+            {isHovered || isFocused ? 'Station · Click to focus' : 'Station'}
           </div>
         </div>
       </Html>
