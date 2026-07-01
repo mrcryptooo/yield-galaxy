@@ -19,12 +19,12 @@ C:\Users\M\Desktop\sols
 # Current Status
 
 **Current Phase:**
-Phase 11 — Production Polish
+Final UX + Visual Polish (complete)
 
 **Project Health:** Stable. Working tree clean, no uncommitted changes.
 
 **Current Git Commit:**
-`d30884d09864cd8b6e5aeeacf2dc52919dd8abb6` — "Phase 11: Production Polish"
+`b96f380a9dc4f6d6a9664238303afde362c2a35e` — "Final UX/visual polish pass: typography, glass, branding, sun, background, stations, planet cards, captain, camera"
 
 **Current Branch:**
 `main` (up to date with `origin/main`)
@@ -130,18 +130,20 @@ All under `C:\Users\M\Desktop\sols\public\assets\`:
 
 # Current Known Issues
 
-- [ ] Typography readability — many HUD text elements are too small / low contrast against the galaxy
-- [ ] Glass cards behind text — not every floating text element has a glass backing yet
-- [ ] Better Galaxy/List switch — transition and affordance need polish
-- [ ] Better branding visibility — logo/wordmark opacity and contrast too weak
-- [ ] Sun artwork improvements — logo texture can disappear depending on viewing angle; needs wrap/duplication, more dynamic surface treatment
-- [ ] Station artwork improvements — still read as flat sprites rather than volumetric destinations
-- [ ] Captain animation — mostly static aside from breathing drift; no idle dialogue timer, limited reactivity
-- [ ] Background scaling — nebula/starfield depth and parallax could be richer
-- [ ] Mobile optimization — not yet audited/built
+- [x] Typography readability — new CSS scale (`--fs-micro` → `--fs-hero`), larger/heavier text everywhere
+- [x] Glass cards behind text — `.glass-panel` / `.glass-panel-strong` / `.glass-card` applied to every floating HUD/galaxy text element
+- [x] Better Galaxy/List switch — nav rebuilt as a glass pill, still instant/stateless switch
+- [x] Better branding visibility — added "Yield Intelligence" line, higher opacity, glass backing
+- [x] Sun artwork improvements — billboard-locked logo plate keeps the mark visible from every angle, added god-ray ring
+- [x] Station artwork improvements — 2x scale, deeper volumetric halo, glass-backed labels
+- [x] Captain animation — 300px, idle dialogue every 20-40s, hover reaction, blink animation
+- [x] Background scaling — two independently-rotating parallax nebula shells added for depth
+- [ ] Mobile optimization — still not audited/built (out of scope for this pass)
 - [ ] Wallet integration — real wallet connection not implemented (execution engine currently uses `MockWalletAdapter`)
 - [ ] Transaction execution — real on-chain execution not implemented (simulation-only today)
-- [ ] Final UX polish — global consistency pass (fonts, spacing, contrast, hierarchy) not yet done
+- [x] Final UX polish — global consistency pass done (typography, glass, spacing, HUD panel collision fix)
+
+Known pre-existing, out-of-scope condition: `npm run lint` reports 48 errors / 9 warnings, all inherent to idiomatic React Three Fiber code (imperative mutation of Three.js objects inside `useFrame`, `Math.random` in `useMemo`, ref access during render) across locked systems (`atmosphere.tsx`, `star-field.tsx`, `route-trails.tsx`, `world-events.tsx`, `world-life.tsx`, `galaxy-camera.tsx`). Verified byte-identical against commit `d30884d` (before this session's changes) via `git stash` — this session introduced zero new lint errors.
 
 ---
 
