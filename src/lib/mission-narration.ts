@@ -48,6 +48,54 @@ export const MISSION_STEP_META: Record<string, Record<string, StepMeta>> = {
   },
 };
 
+// Real missions come from the optimizer (`opt-...` ids), not the static
+// templates above — so the per-route table almost never matches. This
+// generic, action-keyed table (actions are shared across every route) is
+// the fallback that actually fires for dynamic missions, so "Estimated
+// Time" and "Reason" stay meaningful instead of collapsing to a placeholder.
+const GENERIC_ACTION_META: Record<string, StepMeta> = {
+  acquire: { estimate: '1 minute', reason: 'The starting asset for this route.' },
+  swap: { estimate: '2 minutes', reason: 'Converts into the asset this route is built on.' },
+  convert: { estimate: '2 minutes', reason: 'Converts into the position this route is built on.' },
+  stake: { estimate: '2 minutes', reason: 'Locks the asset into a staked position.' },
+  navigate: { estimate: '30 seconds', reason: 'Docks at the protocol handling the next step.' },
+  deposit: { estimate: '1 minute', reason: 'This is where the position starts earning yield.' },
+  borrow: { estimate: '1 minute', reason: 'Borrows against posted collateral to extend the loop.' },
+  loop: { estimate: '1 minute', reason: 'Redeposits to compound the position.' },
+  lp: { estimate: '2 minutes', reason: 'Provides liquidity — increases yield and impermanent-loss exposure.' },
+  mint: { estimate: '2 minutes', reason: 'Locks in a fixed rate until maturity.' },
+  hold: { estimate: 'Until maturity', reason: 'No further action needed — the position runs itself.' },
+  harvest: { estimate: '1 minute', reason: 'Collects the yield the position has already earned.' },
+};
+
 export function getStepMeta(routeId: string, action: string): StepMeta {
-  return MISSION_STEP_META[routeId]?.[action] ?? { estimate: '1 minute', reason: 'Part of completing this route.' };
+  return (
+    MISSION_STEP_META[routeId]?.[action] ??
+    GENERIC_ACTION_META[action] ?? { estimate: '1 minute', reason: 'Part of completing this route.' }
+  );
+}
+
+// Objective 4 (Narrative Missions): rename the objective headline into an
+// adventure/fuel framing without touching route logic, node order, or the
+// per-step Captain line (which already names the real protocol/asset and
+// is shown right underneath as the detail line). The last node in any
+// route is always relabeled "Collect Rewards" — the payoff moment — no
+// matter which underlying action it technically is.
+export function getNarrativeLabel(action: string, celestialKey: string, index: number, total: number): string {
+  if (index === total - 1) return 'Collect Rewards';
+  switch (action) {
+    case 'acquire': return 'Acquire Fuel';
+    case 'swap':
+    case 'convert': return 'Convert Fuel';
+    case 'stake': return 'Stake Fuel';
+    case 'navigate': return `Reach ${celestialKey}`;
+    case 'deposit': return 'Enter Solstice';
+    case 'borrow': return 'Leverage Position';
+    case 'loop': return 'Compound Position';
+    case 'lp': return 'Fuel the Reserves';
+    case 'mint': return 'Lock In Fuel';
+    case 'hold': return 'Hold Position';
+    case 'harvest': return 'Collect Rewards';
+    default: return `${action} at ${celestialKey}`;
+  }
 }

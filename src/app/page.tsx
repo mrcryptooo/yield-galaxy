@@ -112,7 +112,7 @@ function HomeContent() {
       </RightPanel>
 
       <BottomPanel>
-        <MissionPanel planetData={planetData} />
+        <MissionPanel planetData={planetData} opportunities={opportunities} />
       </BottomPanel>
     </AppShell>
   );

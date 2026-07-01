@@ -17,6 +17,9 @@ export interface RouteTemplate {
   description: string;
   steps: RouteStepDef[];
   _captainLines?: Record<string, string>;
+  // Route-wide stats from the optimizer (APY/risk/score), carried alongside
+  // the template so Mission Control can display them without recomputing.
+  _meta?: { apy: number; risk: string; score: number };
 }
 
 export interface RouteStepDef {

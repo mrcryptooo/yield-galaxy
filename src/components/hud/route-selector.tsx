@@ -43,8 +43,14 @@ export function RouteSelector({ opportunities }: { opportunities?: Opportunity[]
     if (!graph) return;
     const template = optimizedRouteToTemplate(route, graph);
     const captainLines = generateCaptainLines(route, graph);
-    // Inject dynamic captain lines into the route template for the journey
+    // Inject dynamic captain lines and route-wide stats into the template
+    // for the journey — Mission Control reads both directly off activeRoute.
     template._captainLines = captainLines;
+    template._meta = {
+      apy: route.simulation.cumulativeApy,
+      risk: route.simulation.cumulativeRisk,
+      score: route.score.total,
+    };
     startJourney(template);
   }, [graph, startJourney]);
 
