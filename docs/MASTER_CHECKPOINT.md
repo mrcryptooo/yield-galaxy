@@ -24,7 +24,7 @@ Final UX + Visual Polish (complete)
 **Project Health:** Stable. Working tree clean, no uncommitted changes.
 
 **Current Git Commit:**
-`d7fa8c0cb4e4dcfb16555f9edd70afd52a1f933b` — "Art direction pass v2: sun logo wrap, real Explore links, safe HUD layout, mission-style journey, captain intelligence"
+`e393ae6d045ed1bb72b1b1832ca2e176200ff851` — "Bug fix pass: revert sun to single logo, architectural safe HUD layout, galaxy click behavior restored, real stacking-context bug fixed"
 
 **Current Branch:**
 `main` (up to date with `origin/main`)
