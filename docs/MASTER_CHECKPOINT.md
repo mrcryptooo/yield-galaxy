@@ -24,7 +24,7 @@ Final UX + Visual Polish (complete)
 **Project Health:** Stable. Working tree clean, no uncommitted changes.
 
 **Current Git Commit:**
-`0b92f59e4a648b52b93acd0431156ae86d24bbd3` — "Final desktop layout pass: unified CSS Grid app shell, redesigned Mission Panel, stations focusable like planets"
+`189803f6c1c242914e6f73c813b65b3f3048df0a` — "Final immersion pass: hover story, focus mode darkening, deeper Captain dialogue, unified motion language"
 
 **Current Branch:**
 `main` (up to date with `origin/main`)
