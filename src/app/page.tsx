@@ -2,23 +2,20 @@
 
 import { lazy, Suspense, useMemo } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { VisorLayer } from '@/components/hud/visor-layer';
-import { NavBar } from '@/components/hud/nav-bar';
+import { AppShell, TopBar, LeftPanel, CenterPanel, RightPanel, BottomPanel } from '@/components/hud/app-shell';
 import { CaptainPresence } from '@/components/hud/captain-presence';
 import { CommsConsole } from '@/components/hud/comms-console';
 import { TelemetryStrip } from '@/components/hud/telemetry-strip';
-import { JourneyHud } from '@/components/hud/journey-hud';
+import { MissionPanel } from '@/components/hud/mission-panel';
 import { RouteSelector } from '@/components/hud/route-selector';
-import { Branding } from '@/components/hud/branding';
 import { PlanetInfoPanel } from '@/components/hud/planet-info-panel';
-import { LeftRail, RightRail, BottomRail } from '@/components/hud/hud-rails';
+import { StationInfoPanel } from '@/components/hud/station-info-panel';
 import { ListView } from '@/components/list/list-view';
 import { useYields } from '@/hooks/use-yields';
 import { buildPlanetData } from '@/lib/build-planet-data';
 import { formatApy } from '@/lib/format';
 import { FALLBACK_PLANET_DATA } from '@/components/galaxy/planet-data';
 import { SOURCE_DISPLAY_NAMES } from '@/lib/constants';
-import { useJourneyStore } from '@/stores/journey-store';
 
 const GalaxyScene = lazy(() =>
   import('@/components/galaxy/galaxy-scene').then((m) => ({ default: m.GalaxyScene }))
@@ -28,7 +25,6 @@ const queryClient = new QueryClient();
 
 function HomeContent() {
   const { data: opportunities } = useYields();
-  const activeRoute = useJourneyStore((s) => s.activeRoute);
 
   const planetData = useMemo(() => {
     if (!opportunities || opportunities.length === 0) return FALLBACK_PLANET_DATA;
@@ -74,53 +70,51 @@ function HomeContent() {
   }, [opportunities]);
 
   return (
-    <>
-      <Suspense
-        fallback={
-          <div style={{
-            position: 'fixed', inset: 0, background: '#0A0E1A',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-          }}>
-            <img
-              src="/assets/captain/captain-holographic.webp"
-              alt=""
-              style={{ width: 48, height: 48, borderRadius: '50%', objectFit: 'cover', opacity: 0.3 }}
-            />
-          </div>
-        }
-      >
-        <GalaxyScene planetData={planetData} />
-      </Suspense>
+    <AppShell>
+      <TopBar />
 
-      <ListView opportunities={opportunities} />
+      <LeftPanel>
+        <PlanetInfoPanel planetData={planetData} />
+        <StationInfoPanel />
+        <CaptainPresence destinationCount={destinationCount} bestOpportunitySummary={bestOpportunitySummary} planetData={planetData} />
+      </LeftPanel>
 
-      {/* Safe layout system: NavBar owns top-center; LEFT/RIGHT/BOTTOM rails
-          own their protected regions; the galaxy owns the center. Nothing
-          renders outside these regions, so panels cannot overlap. */}
-      <VisorLayer>
-        <NavBar />
+      <CenterPanel>
+        {/* GalaxyScene stays mounted at all times — switching to List View
+            must never reload the world or reset the camera/focus state.
+            ListView renders as an overlay on top of the (still-running)
+            canvas, exactly like the previous full-viewport version, just
+            now scoped to the center grid cell instead of the whole page. */}
+        <Suspense
+          fallback={
+            <div style={{
+              position: 'absolute', inset: 0, background: '#0A0E1A', borderRadius: 'var(--panel-radius)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+              <img
+                src="/assets/captain/captain-holographic.webp"
+                alt=""
+                style={{ width: 48, height: 48, borderRadius: '50%', objectFit: 'cover', opacity: 0.3 }}
+              />
+            </div>
+          }
+        >
+          <GalaxyScene planetData={planetData} />
+        </Suspense>
 
-        <LeftRail>
-          <Branding />
-          <PlanetInfoPanel planetData={planetData} />
-          <CaptainPresence destinationCount={destinationCount} bestOpportunitySummary={bestOpportunitySummary} planetData={planetData} />
-        </LeftRail>
+        <ListView opportunities={opportunities} />
+      </CenterPanel>
 
-        {!activeRoute && (
-          <RightRail>
-            <CommsConsole signals={commsSignals} />
-            <RouteSelector opportunities={opportunities} />
-            <TelemetryStrip readings={telemetryReadings} />
-          </RightRail>
-        )}
+      <RightPanel>
+        <CommsConsole signals={commsSignals} />
+        <RouteSelector opportunities={opportunities} />
+        <TelemetryStrip readings={telemetryReadings} />
+      </RightPanel>
 
-        {activeRoute && (
-          <BottomRail>
-            <JourneyHud planetData={planetData} />
-          </BottomRail>
-        )}
-      </VisorLayer>
-    </>
+      <BottomPanel>
+        <MissionPanel planetData={planetData} />
+      </BottomPanel>
+    </AppShell>
   );
 }
 

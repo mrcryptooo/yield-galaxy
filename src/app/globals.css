@@ -26,18 +26,21 @@
   --glass-blur: 18px;
   --glass-radius: 14px;
 
-  /* Safe layout system: protected HUD regions. LEFT/RIGHT rails own a fixed
-     width; BOTTOM rail is centered. Nothing may render outside these, and
-     nothing inside the galaxy may be positioned into these zones. */
-  --rail-width: 260px;
-  --rail-margin: 20px;
-  --rail-gap: 14px;
-  --rail-bg: rgba(8, 11, 20, 0.78);
-  --rail-border: rgba(246, 160, 77, 0.14);
-  /* NavBar occupies its own top-center strip (~68px tall incl. margin) — left
-     and right rails start below it so their regions never share pixels with
-     the nav's region, regardless of viewport width. */
-  --rail-top-offset: 84px;
+  /* Unified app shell — one persistent grid, not floating windows. Every
+     panel (top/left/right/bottom) shares these exact values so the whole
+     HUD reads as one design system. Panel width is ~15% larger than the
+     previous floating-rail width (260px -> 300px). */
+  --shell-margin: 16px;
+  --shell-gap: 16px;
+  --shell-top-h: 72px;
+  --shell-panel-w: 300px;
+  --shell-bottom-h: 200px;
+  --panel-bg: rgba(8, 11, 20, 0.8);
+  --panel-border: rgba(246, 160, 77, 0.16);
+  --panel-radius: 18px;
+  --panel-padding: 20px;
+  --panel-blur: 22px;
+  --panel-shadow: 0 8px 32px rgba(0, 0, 0, 0.45), 0 0 24px rgba(246, 160, 77, 0.05);
 }
 
 body {
@@ -123,54 +126,55 @@ canvas {
   box-shadow: var(--glass-shadow);
 }
 
-/* Safe layout system — one rail container per protected region. Every HUD
-   element renders as a normal-flow child inside its rail instead of an
-   independently `position:fixed` element, so panels can never overlap: the
-   rail's own flex column stacks them, and the rail's fixed width bounds them
-   horizontally. */
-.hud-rail {
+/* ---------- Unified App Shell (Task 1) ---------- */
+/* One persistent CSS Grid: top bar, left/right panels, center (galaxy owns
+   this, no panel chrome), bottom mission panel. Every panel is a genuine
+   grid cell — never `position:fixed` floating over the canvas — so nothing
+   can overlap by construction, and every panel shares one `.shell-panel`
+   treatment (identical glass/radius/padding/border/blur/shadow). */
+.app-shell {
   position: fixed;
-  z-index: 12;
-  width: var(--rail-width);
-  display: flex;
-  flex-direction: column;
-  gap: var(--rail-gap);
-  background: var(--rail-bg);
-  backdrop-filter: blur(var(--glass-blur));
-  -webkit-backdrop-filter: blur(var(--glass-blur));
-  border: 1px solid var(--rail-border);
-  border-radius: var(--glass-radius);
-  box-shadow: var(--glass-shadow);
-  padding: 18px;
+  inset: 0;
+  z-index: 16;
+  display: grid;
+  grid-template-columns: var(--shell-panel-w) 1fr var(--shell-panel-w);
+  grid-template-rows: var(--shell-top-h) 1fr var(--shell-bottom-h);
+  grid-template-areas:
+    "top    top    top"
+    "left   center right"
+    "bottom bottom bottom";
+  gap: var(--shell-gap);
+  padding: var(--shell-margin);
   pointer-events: none;
 }
 
-.hud-rail > * {
+.shell-panel {
+  background: var(--panel-bg);
+  backdrop-filter: blur(var(--panel-blur));
+  -webkit-backdrop-filter: blur(var(--panel-blur));
+  border: 1px solid var(--panel-border);
+  border-radius: var(--panel-radius);
+  box-shadow: var(--panel-shadow);
+  padding: var(--panel-padding);
   pointer-events: auto;
 }
 
-.hud-rail-left {
-  top: var(--rail-top-offset);
-  left: var(--rail-margin);
-  bottom: var(--rail-margin);
-  overflow-y: auto;
-}
+.shell-top { grid-area: top; display: flex; align-items: center; }
+.shell-left { grid-area: left; display: flex; flex-direction: column; gap: 16px; overflow-y: auto; }
+.shell-center { grid-area: center; position: relative; pointer-events: auto; }
+.shell-right { grid-area: right; display: flex; flex-direction: column; gap: 16px; overflow-y: auto; }
+.shell-bottom { grid-area: bottom; display: flex; flex-direction: column; align-items: center; justify-content: center; }
 
-.hud-rail-right {
-  top: var(--rail-top-offset);
-  right: var(--rail-margin);
-  bottom: var(--rail-margin);
-  align-items: flex-end;
-  overflow-y: auto;
+/* Custom invisible scrollbars (Task 6) — scrolling stays functional,
+   the native gray track/thumb just never renders. */
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
-
-.hud-rail-bottom {
-  bottom: var(--rail-margin);
-  left: 50%;
-  transform: translateX(-50%);
-  width: auto;
-  min-width: 420px;
-  align-items: center;
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
 }
 
 .glass-card {

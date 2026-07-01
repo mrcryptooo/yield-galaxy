@@ -53,7 +53,7 @@ export function GalaxyScene({ planetData }: { planetData: Record<string, PlanetI
     <Canvas
       camera={{ position: [0, 45, 55], fov: CAMERA.fov, near: 0.1, far: 300 }}
       gl={{ antialias: true, alpha: false }}
-      style={{ position: 'fixed', inset: 0, width: '100vw', height: '100vh', background: '#0A0E1A' }}
+      style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', background: '#0A0E1A', borderRadius: 'var(--panel-radius)' }}
       dpr={[1, 1.5]}
     >
       <Suspense fallback={null}>

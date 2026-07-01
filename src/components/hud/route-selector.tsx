@@ -50,7 +50,8 @@ export function RouteSelector({ opportunities }: { opportunities?: Opportunity[]
 
   if (activeRoute) return null;
 
-  // Lives inside <RightRail> (safe layout system) — no longer self-positioned.
+  // Lives inside the Right shell panel, which owns the scrolling — no nested
+  // inner scroll area needed here.
   return (
     <div style={{
       display: 'flex',
@@ -59,8 +60,6 @@ export function RouteSelector({ opportunities }: { opportunities?: Opportunity[]
       gap: '8px',
       pointerEvents: 'none',
       width: '100%',
-      maxHeight: '40vh',
-      overflowY: 'auto',
       borderTop: '1px solid rgba(246,160,77,0.1)',
       paddingTop: '14px',
     }}>

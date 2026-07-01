@@ -4,11 +4,21 @@ import { useRef, useEffect } from 'react';
 import { useThree, useFrame } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import * as THREE from 'three';
-import { CAMERA } from './positions';
+import { CAMERA, STATION_POSITIONS } from './positions';
 import { FOCUS_CAMERAS } from './focus-cameras';
 import { useGalaxyStore } from '@/stores/galaxy-store';
 import { useJourneyStore } from '@/stores/journey-store';
 import { getCameraForNode } from '@/lib/route-engine';
+
+// Stations don't have hand-crafted focus cameras like planets — generate a
+// consistent generic framing (same offset pattern route-engine already uses
+// for arbitrary journey nodes) so "stations behave exactly like planets".
+function getStationFocusCamera(name: string): { position: [number, number, number]; target: [number, number, number] } | null {
+  const station = (STATION_POSITIONS as Record<string, { pos: [number, number, number] }>)[name];
+  if (!station) return null;
+  const [x, y, z] = station.pos;
+  return { position: [x + 3, y + 2, z + 4], target: [x, y, z] };
+}
 
 const FINAL_POS = new THREE.Vector3(...CAMERA.position);
 const FINAL_TARGET = new THREE.Vector3(...CAMERA.target);
@@ -21,6 +31,8 @@ export function GalaxyCamera() {
 
   const focused = useGalaxyStore((s) => s.focused);
   const setFocused = useGalaxyStore((s) => s.setFocused);
+  const focusedStation = useGalaxyStore((s) => s.focusedStation);
+  const setFocusedStation = useGalaxyStore((s) => s.setFocusedStation);
 
   const phase = useRef<'opening' | 'idle' | 'flying' | 'journey-orbit'>('opening');
   const progress = useRef(0);
@@ -29,27 +41,33 @@ export function GalaxyCamera() {
   const flyTo = useRef({ pos: new THREE.Vector3(), target: new THREE.Vector3() });
   const drift = useRef({ x: 0, y: 0 });
 
-  // React to focus changes
+  // React to focus changes (planet or station — same fly-to mechanism)
   const prevFocused = useRef<string | null>(null);
   useEffect(() => {
-    if (focused === prevFocused.current) return;
-    prevFocused.current = focused;
+    const focusKey = focused ?? (focusedStation ? `station:${focusedStation}` : null);
+    if (focusKey === prevFocused.current) return;
+    prevFocused.current = focusKey;
 
     const ctrl = controlsRef.current as unknown as { target: THREE.Vector3 } | null;
     flyFrom.current.pos.copy(camera.position);
     flyFrom.current.target.copy(ctrl?.target ?? FINAL_TARGET);
 
+    const stationCam = focusedStation ? getStationFocusCamera(focusedStation) : null;
+
     if (focused && FOCUS_CAMERAS[focused]) {
       const fc = FOCUS_CAMERAS[focused];
       flyTo.current.pos.set(...fc.position);
       flyTo.current.target.set(...fc.target);
+    } else if (stationCam) {
+      flyTo.current.pos.set(...stationCam.position);
+      flyTo.current.target.set(...stationCam.target);
     } else {
       flyTo.current.pos.copy(FINAL_POS);
       flyTo.current.target.copy(FINAL_TARGET);
     }
     phase.current = 'flying';
     progress.current = 0;
-  }, [focused, camera]);
+  }, [focused, focusedStation, camera]);
 
   // React to journey step changes
   const activeRoute = useJourneyStore((s) => s.activeRoute);
@@ -98,7 +116,7 @@ export function GalaxyCamera() {
 
   const endJourney = useJourneyStore((s) => s.endJourney);
 
-  // ESC: journey → protocol → planet → galaxy (layered exit)
+  // ESC: journey → protocol → planet/station → galaxy (layered exit)
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
@@ -108,14 +126,16 @@ export function GalaxyCamera() {
           setSelectedProtocol(null);
         } else if (focused) {
           setFocused(null);
+        } else if (focusedStation) {
+          setFocusedStation(null);
         }
       }
     };
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);
-  }, [focused, selectedProtocol, activeRoute, setFocused, setSelectedProtocol, endJourney]);
+  }, [focused, focusedStation, selectedProtocol, activeRoute, setFocused, setFocusedStation, setSelectedProtocol, endJourney]);
 
-  // Click empty space: protocol → planet → galaxy
+  // Click empty space: protocol → planet/station → galaxy
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
       if (e.target !== gl.domElement) return;
@@ -123,11 +143,13 @@ export function GalaxyCamera() {
         setSelectedProtocol(null);
       } else if (focused) {
         setFocused(null);
+      } else if (focusedStation) {
+        setFocusedStation(null);
       }
     };
     gl.domElement.addEventListener('click', handleClick);
     return () => gl.domElement.removeEventListener('click', handleClick);
-  }, [focused, setFocused, gl.domElement]);
+  }, [focused, focusedStation, setFocused, setFocusedStation, gl.domElement]);
 
   useFrame((_, delta) => {
     const ctrl = controlsRef.current as unknown as { target: THREE.Vector3 } | null;
@@ -187,8 +209,8 @@ export function GalaxyCamera() {
       ref={controlsRef}
       target={FINAL_TARGET}
       enablePan={false}
-      enableZoom={!focused && !activeRoute}
-      enableRotate={!focused && !activeRoute}
+      enableZoom={!focused && !focusedStation && !activeRoute}
+      enableRotate={!focused && !focusedStation && !activeRoute}
       minDistance={10}
       maxDistance={60}
       dampingFactor={0.015}

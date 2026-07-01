@@ -66,13 +66,17 @@ export function ListView({ opportunities }: { opportunities?: Opportunity[] }) {
 
   if (mode !== 'list') return null;
 
+  // Fills the Center panel of the app shell (no longer a full-viewport
+  // overlay) — the top bar, left/right panels, and mission panel are
+  // separate grid cells, so List View can never cover them.
   return (
-    <div style={{
-      position: 'fixed', inset: 0, zIndex: 15,
+    <div className="no-scrollbar" style={{
+      position: 'absolute', inset: 0,
       background: 'rgba(8,11,20,0.88)',
       backdropFilter: 'blur(24px)',
+      borderRadius: 'var(--panel-radius)',
       overflow: 'auto',
-      padding: '90px 40px 60px',
+      padding: '32px 32px 40px',
       animation: 'fadeIn 0.35s cubic-bezier(0.16,1,0.3,1) both',
     }}>
       {/* Header */}

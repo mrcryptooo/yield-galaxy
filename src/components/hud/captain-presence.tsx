@@ -29,6 +29,16 @@ const IDLE_DIALOGUE = [
   "Every station runs its own risk profile. Ask before you dock.",
   "I've charted every route in this sector. Just say the word.",
   "Patience pays out here — literally.",
+  "Four planets, five stations, endless combinations.",
+  "Some yields look too good to be true. I check those twice.",
+  "The safest path isn't always the slowest one out here.",
+  "Ask me about risk grades — I never sugarcoat them.",
+  "A quiet market is a good time to plan your next move.",
+  "I've seen APYs swing hard overnight. Stay sharp.",
+  "Diversifying across protocols usually pays off long-term.",
+  "Click List View if you'd rather see everything at once.",
+  "Every mission you complete, I remember.",
+  "Loopscale runs tighter risk controls than most. Worth knowing.",
 ];
 
 // Station explanations for hover — mirrors CAPTAIN_LINES (planets) so every
@@ -50,9 +60,12 @@ const CAPTAIN_IMAGES: Record<string, string> = {
   default: '/assets/captain/captain-full-body.webp',
 };
 
-function getCaptainImage(captainState: string, focused: string | null, activeRoute: boolean): string {
+function getCaptainImage(captainState: string, focused: string | null, activeRoute: boolean, discovering: boolean): string {
   if (activeRoute) return CAPTAIN_IMAGES[captainState] ?? CAPTAIN_IMAGES.default;
   if (focused) return CAPTAIN_IMAGES.talking;
+  // "Discovery" — hovering something without committing to it yet reads as
+  // the Captain considering/scanning, not fully narrating.
+  if (discovering) return CAPTAIN_IMAGES.thinking;
   return CAPTAIN_IMAGES.default;
 }
 
@@ -61,6 +74,8 @@ export function CaptainPresence({ destinationCount, bestOpportunitySummary, plan
   const frameRef = useRef(0);
   const focused = useGalaxyStore((s) => s.focused);
   const hovered = useGalaxyStore((s) => s.hovered);
+  const focusedStation = useGalaxyStore((s) => s.focusedStation);
+  const hoveredStation = useGalaxyStore((s) => s.hoveredStation);
   const selectedProtocol = useGalaxyStore((s) => s.selectedProtocol);
   const activeRoute = useJourneyStore((s) => s.activeRoute);
   const completed = useJourneyStore((s) => s.completed);
@@ -145,12 +160,16 @@ export function CaptainPresence({ destinationCount, bestOpportunitySummary, plan
     const info = planetData?.[focused];
     const base = CAPTAIN_LINES[focused] ?? 'Interesting choice, Explorer.';
     speech = info ? `${base} TVL ${info.tvl}, best yield ${info.avgApy} across ${info.protocolCount} protocol${info.protocolCount === 1 ? '' : 's'}.` : base;
+  } else if (focusedStation) {
+    speech = STATION_LINES[focusedStation] ?? `Docking at ${focusedStation}. Let's see what's here.`;
   } else if (captainSpeech) {
     speech = captainSpeech.text;
     if (captainSpeech.tone === 'cautious') stateLabel = 'ALERT';
     else if (captainSpeech.tone === 'confident') stateLabel = 'ANALYSIS';
   } else if (hovered) {
-    speech = CAPTAIN_LINES[hovered] ?? STATION_LINES[hovered] ?? `Take a closer look at ${hovered}?`;
+    speech = CAPTAIN_LINES[hovered] ?? `Take a closer look at ${hovered}?`;
+  } else if (hoveredStation) {
+    speech = STATION_LINES[hoveredStation] ?? `Take a closer look at ${hoveredStation}?`;
   } else if (transientLine) {
     speech = transientLine;
   } else if (idleLine) {
@@ -163,12 +182,13 @@ export function CaptainPresence({ destinationCount, bestOpportunitySummary, plan
 
   const captainImage = getCaptainImage(
     captainSpeech?.suggestedState ?? captainState,
-    focused,
+    focused ?? focusedStation,
     !!activeRoute,
+    !!(hovered || hoveredStation) && !focused && !focusedStation,
   );
 
   const isJourneyActive = !!activeRoute;
-  const hasBriefing = !!captainSpeech && !isJourneyActive && !focused && !selectedProtocol;
+  const hasBriefing = !!captainSpeech && !isJourneyActive && !focused && !focusedStation && !selectedProtocol;
   const speechColor = completed
     ? 'rgba(246,160,77,0.7)'
     : isJourneyActive
@@ -197,18 +217,20 @@ export function CaptainPresence({ destinationCount, bestOpportunitySummary, plan
     return () => cancelAnimationFrame(frameRef.current);
   }, []);
 
-  // Lives inside <LeftRail> (safe layout system) — no longer self-positioned.
+  // Lives inside the Left shell panel — a normal flow child, pushed to the
+  // bottom of the panel's flex column via marginTop:auto.
   return (
     <div style={{
       pointerEvents: 'none',
       borderTop: '1px solid rgba(246,160,77,0.1)',
-      paddingTop: '14px',
+      paddingTop: '16px',
       marginTop: 'auto',
+      width: '100%',
     }}>
       {/* State indicator */}
       {(isJourneyActive || hasBriefing) && stateLabel && (
         <div style={{
-          marginBottom: '8px', marginLeft: '46px',
+          marginBottom: '8px',
           fontSize: '11px', fontWeight: 600,
           fontFamily: 'var(--font-geist-mono), monospace',
           letterSpacing: '0.14em',
@@ -230,7 +252,7 @@ export function CaptainPresence({ destinationCount, bestOpportunitySummary, plan
         key={speech}
         className="glass-panel"
         style={{
-          marginBottom: '12px', marginLeft: '46px', maxWidth: '260px',
+          marginBottom: '14px', width: '100%',
           padding: '12px 16px',
           fontSize: 'var(--fs-body)', lineHeight: '1.6', fontWeight: 400,
           letterSpacing: '0.01em',
@@ -239,31 +261,27 @@ export function CaptainPresence({ destinationCount, bestOpportunitySummary, plan
             ? '0 0 18px rgba(246,160,77,0.15)'
             : '0 0 12px rgba(246,160,77,0.06)',
           animation: 'fadeIn 0.6s ease-out',
+          boxSizing: 'border-box',
         }}
       >
         {speech}
       </div>
 
-      <div ref={containerRef} style={{ position: 'relative' }}>
+      <div ref={containerRef} style={{ position: 'relative', display: 'flex', justifyContent: 'center' }}>
         <div style={{
-          position: 'absolute', top: '-30px', right: '-45px',
-          width: '190px', height: '190px', borderRadius: '50%',
+          position: 'absolute', top: '-10px', right: '10px',
+          width: '150px', height: '150px', borderRadius: '50%',
           background: `radial-gradient(circle at 30% 40%, rgba(246,160,77,${completed ? 0.16 : 0.1}) 0%, transparent 60%)`,
           transition: 'background 1s ease',
-        }} />
-        <div style={{
-          position: 'absolute', bottom: '-25px', left: '30px',
-          width: '150px', height: '60px', borderRadius: '50%',
-          background: 'radial-gradient(ellipse, rgba(246,160,77,0.06) 0%, transparent 70%)',
         }} />
         <Image
           src={captainImage}
           alt="Captain Whiskers"
-          width={600} height={600}
+          width={500} height={500}
           style={{
-            width: '300px', height: '300px', objectFit: 'contain',
+            width: '220px', height: '220px', objectFit: 'contain',
             position: 'relative', opacity: completed ? 1 : 0.95,
-            animation: hovered || focused || activeRoute ? 'none' : 'blink 6s ease-in-out infinite',
+            animation: hovered || hoveredStation || focused || focusedStation || activeRoute ? 'none' : 'blink 6s ease-in-out infinite',
             filter: completed
               ? 'drop-shadow(0 2px 32px rgba(246,160,77,0.22)) drop-shadow(2px 0 16px rgba(246,160,77,0.12))'
               : 'drop-shadow(0 2px 28px rgba(246,160,77,0.12)) drop-shadow(2px 0 14px rgba(246,160,77,0.06))',

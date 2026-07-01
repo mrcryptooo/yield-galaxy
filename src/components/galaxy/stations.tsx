@@ -5,6 +5,7 @@ import { useFrame } from '@react-three/fiber';
 import { Billboard, useTexture, Html } from '@react-three/drei';
 import * as THREE from 'three';
 import { STATION_POSITIONS } from './positions';
+import { useGalaxyStore } from '@/stores/galaxy-store';
 
 const TEXTURES: Record<string, string> = {
   Kamino: '/assets/stations/kamino-station.webp',
@@ -43,6 +44,11 @@ function Station({ name }: { name: keyof typeof STATION_POSITIONS }) {
   const id = IDENTITY[name]!;
   const texture = useTexture(TEXTURES[name]!);
   const spriteSize = size * SPRITE_SCALE;
+
+  const focusedStation = useGalaxyStore((s) => s.focusedStation);
+  const setFocusedStation = useGalaxyStore((s) => s.setFocusedStation);
+  const setHoveredStation = useGalaxyStore((s) => s.setHoveredStation);
+  const isFocused = focusedStation === name;
 
   const rhythm = useMemo(() => ({
     speed: 0.6 + Math.random() * 0.8,
@@ -83,9 +89,14 @@ function Station({ name }: { name: keyof typeof STATION_POSITIONS }) {
       <pointLight ref={lightRef} color={id.light} intensity={id.lightIntensity} distance={8} />
 
       <Billboard follow lockX={false} lockY={false} lockZ={false}>
-        <mesh ref={spinRef}>
+        <mesh
+          ref={spinRef}
+          onClick={(e) => { e.stopPropagation(); setFocusedStation(isFocused ? null : name); }}
+          onPointerOver={() => { setHoveredStation(name); document.body.style.cursor = 'pointer'; }}
+          onPointerOut={() => { setHoveredStation(null); document.body.style.cursor = 'auto'; }}
+        >
           <planeGeometry args={[spriteSize, spriteSize]} />
-          <meshBasicMaterial map={texture} transparent alphaTest={0.02} toneMapped={false} opacity={0.97} />
+          <meshBasicMaterial map={texture} transparent alphaTest={0.02} toneMapped={false} opacity={isFocused ? 1 : 0.97} />
         </mesh>
       </Billboard>
 
