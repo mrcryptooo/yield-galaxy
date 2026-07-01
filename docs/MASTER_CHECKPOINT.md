@@ -24,7 +24,7 @@ Final UX + Visual Polish (complete)
 **Project Health:** Stable. Working tree clean, no uncommitted changes.
 
 **Current Git Commit:**
-`e393ae6d045ed1bb72b1b1832ca2e176200ff851` — "Bug fix pass: revert sun to single logo, architectural safe HUD layout, galaxy click behavior restored, real stacking-context bug fixed"
+`0b92f59e4a648b52b93acd0431156ae86d24bbd3` — "Final desktop layout pass: unified CSS Grid app shell, redesigned Mission Panel, stations focusable like planets"
 
 **Current Branch:**
 `main` (up to date with `origin/main`)
@@ -63,13 +63,13 @@ Full-viewport R3F `Canvas` scene: `galaxy-scene.tsx` composes `star-field`, `neb
 Single owner of all camera motion. State machine: `opening → idle → flying → journey-orbit`. Smootherstep easing, incommensurate-frequency idle drift, layered ESC navigation (journey → protocol → planet → galaxy). No UI element is allowed to move the camera directly.
 
 **HUD** (`src/components/hud/`)
-Diegetic, camera-attached overlay: `visor-layer` (micro drift wrapper), `nav-bar`, `captain-presence`, `comms-console`, `telemetry-strip`, `route-selector`, `journey-hud`, `branding`.
+Unified CSS Grid app shell (`app-shell.tsx`): persistent Top Bar (logo/wordmark/Galaxy-List switch + reserved space for future Wallet/Portfolio/Settings/Notifications), Left Panel (`planet-info-panel.tsx`, `station-info-panel.tsx`, `captain-presence.tsx`), Center (galaxy/list, no chrome), Right Panel (`comms-console.tsx`, `route-selector.tsx`, `telemetry-strip.tsx`), Bottom Panel (`mission-panel.tsx`). Every panel shares one `.shell-panel` glass class — no floating windows, no independently `position:fixed` HUD elements.
 
 **Captain** (`src/lib/captain/` + `hud/captain-presence.tsx`)
 Pure-function intelligence pipeline: `analysis.ts → insights.ts → risk.ts → recommendations.ts → speech.ts → summary.ts` (orchestrated by `buildBriefing()`). Rendered via 5 state images (idle/thinking/talking/success/alert) driven by `journey-store` + `execution-store` + `captain-store`.
 
-**Journey** (`src/components/galaxy/journey-player.tsx`, `src/lib/route-templates.ts`, `src/lib/route-engine.ts`)
-Auto-play cinematic playback of a route: fly → dwell → next-step timer loop, drives `journey-store` and camera `journey-orbit` phase, with per-step Captain narration lines.
+**Journey** (`src/components/galaxy/journey-player.tsx`, `src/lib/route-templates.ts`, `src/lib/route-engine.ts`, `hud/mission-panel.tsx`)
+Auto-play cinematic playback of a route: fly → dwell → next-step timer loop, drives `journey-store` and camera `journey-orbit` phase, with per-step Captain narration lines. Presented via the Bottom Panel's Mission Panel (checkmarked completed steps, glowing current step, locked future steps, Explorer Badge on completion) — the panel is always present, showing an idle prompt when no route is active.
 
 **Optimizer** (`src/lib/optimizer/`)
 `opportunity-graph.ts` (directed graph) → DFS path search → `constraints.ts` filtering → `scorer.ts` multi-factor scoring → `simulator.ts`. `optimizer.ts` returns top 8 scored routes. Backed by `optimizer-store.ts`.
