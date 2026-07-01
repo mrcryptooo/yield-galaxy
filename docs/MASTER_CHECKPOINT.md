@@ -19,12 +19,12 @@ C:\Users\M\Desktop\sols
 # Current Status
 
 **Current Phase:**
-Final UX + Visual Polish (complete) — Mission Panel now a live command center
+Final UX + Visual Polish (complete) — Mission Control Intelligence (live command center, continuous discovery, discovery mode, narrative missions)
 
 **Project Health:** Stable. Working tree clean, no uncommitted changes.
 
 **Current Git Commit:**
-`feee836` — "Mission Panel: command-center objectives, not a checklist"
+`516f537` — "Mission Control Intelligence: live command center, continuous discovery, discovery mode, narrative missions"
 
 **Current Branch:**
 `main` (up to date with `origin/main`)
@@ -69,7 +69,14 @@ Unified CSS Grid app shell (`app-shell.tsx`): persistent Top Bar (logo/wordmark/
 Pure-function intelligence pipeline: `analysis.ts → insights.ts → risk.ts → recommendations.ts → speech.ts → summary.ts` (orchestrated by `buildBriefing()`). Rendered via 5 state images (idle/thinking/talking/success/alert) driven by `journey-store` + `execution-store` + `captain-store`.
 
 **Journey** (`src/components/galaxy/journey-player.tsx`, `src/lib/route-templates.ts`, `src/lib/route-engine.ts`, `galaxy/mission-focus-sync.tsx`, `lib/mission-narration.ts`, `hud/mission-panel.tsx`)
-Auto-play cinematic playback of a route: fly → dwell → next-step timer loop (slowed for cinematic pacing: 3.4s fly / 7.5s dwell), drives `journey-store` and camera `journey-orbit` phase. The galaxy itself draws NOTHING mission-related (route-trails.tsx was deleted) — `mission-focus-sync.tsx` instead syncs the current step to `galaxy-store`'s focused/focusedStation, so the camera's destination is highlighted via the same Focus Mode a manual click triggers (dim + darken + Left Panel update). The Mission Panel (Bottom Panel, always present) is the only mission UI, built as a command center rather than a checklist: an animated progress bar, a dominant "current objective" card (glowing 52px icon, Captain line, estimate+reason from `mission-narration.ts`) flanked by shrunk completed/upcoming dot trails, route-wide APY/risk, and an Explorer Badge on completion. All step nodes stay mounted for the whole mission so state transitions (completed → current → locked) animate size/glow/color instead of swapping DOM nodes.
+Auto-play cinematic playback of a route: fly → dwell → next-step timer loop (slowed for cinematic pacing: 3.4s fly / 7.5s dwell), drives `journey-store` and camera `journey-orbit` phase. The galaxy itself draws NOTHING mission-related (route-trails.tsx was deleted) — `mission-focus-sync.tsx` instead syncs the current step to `galaxy-store`'s focused/focusedStation, so the camera's destination is highlighted via the same Focus Mode a manual click triggers (dim + darken + Left Panel update).
+
+The Mission Panel (Bottom Panel, always present) is a live command center, not a checklist, in three states:
+- **Active mission:** status pill (IN PROGRESS/SCANNING/MISSION COMPLETE), animated progress bar, a dominant "current objective" card (52px glowing icon, narrative headline from `getNarrativeLabel()`, Captain line, estimate+reason from `getStepMeta()`) with a compact "next objective" preview beside it, shrunk completed/upcoming dot trails, and a header stats cluster (EST. APY / RISK / SCORE / REWARD) sourced from the route template's `_meta` (set by the optimizer at launch — `RouteTemplate._meta = { apy, risk, score }`, `route-engine.ts`).
+- **Continuous Discovery:** completing a mission never ends it — after the Explorer Badge lights, the panel shows a "scanning" state (spinning icon, Captain: "Excellent work. Scanning the ecosystem for another opportunity...") and then automatically re-runs the optimizer and launches the next-best route (skipping the last few just completed, tracked in a ref), so Mission Control stays alive indefinitely.
+- **Discovery Mode (idle):** when no mission is active, instead of an empty panel it shows a live dashboard — STATUS/SCANNING (pulsing dot), a Captain briefing naming the current best route, and Protocols Scanned / Pools Analyzed / Candidate Routes / Best Yield / Last Scan, recomputed on a timer so it visibly ticks even with unchanged data.
+
+Objective headlines (`getNarrativeLabel()` in `mission-narration.ts`) are a presentation-only adventure framing (Acquire Fuel / Convert Fuel / Enter Solstice / Reach `<station>` / Collect Rewards, with the last node always "Collect Rewards") — the real protocol/asset stays visible in the Captain line directly beneath. `getStepMeta()` also gained a generic action-keyed fallback table, since `MISSION_STEP_META` was keyed by the (unused) static template ids and virtually never matched a real optimizer-generated mission — dynamic missions were silently showing a placeholder estimate/reason before this fix.
 
 **Optimizer** (`src/lib/optimizer/`)
 `opportunity-graph.ts` (directed graph) → DFS path search → `constraints.ts` filtering → `scorer.ts` multi-factor scoring → `simulator.ts`. `optimizer.ts` returns top 8 scored routes. Backed by `optimizer-store.ts`.
