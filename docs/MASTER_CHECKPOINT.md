@@ -19,12 +19,12 @@ C:\Users\M\Desktop\sols
 # Current Status
 
 **Current Phase:**
-Final UX + Visual Polish (complete)
+Final UX + Visual Polish (complete) — Mission Panel now a live command center
 
 **Project Health:** Stable. Working tree clean, no uncommitted changes.
 
 **Current Git Commit:**
-`2706d171c3903d2e5949fb23e72faffff413bb87` — "Mission Experience redesign: galaxy stays clean, camera guides, Mission Panel tells the story"
+`feee836` — "Mission Panel: command-center objectives, not a checklist"
 
 **Current Branch:**
 `main` (up to date with `origin/main`)
@@ -69,7 +69,7 @@ Unified CSS Grid app shell (`app-shell.tsx`): persistent Top Bar (logo/wordmark/
 Pure-function intelligence pipeline: `analysis.ts → insights.ts → risk.ts → recommendations.ts → speech.ts → summary.ts` (orchestrated by `buildBriefing()`). Rendered via 5 state images (idle/thinking/talking/success/alert) driven by `journey-store` + `execution-store` + `captain-store`.
 
 **Journey** (`src/components/galaxy/journey-player.tsx`, `src/lib/route-templates.ts`, `src/lib/route-engine.ts`, `galaxy/mission-focus-sync.tsx`, `lib/mission-narration.ts`, `hud/mission-panel.tsx`)
-Auto-play cinematic playback of a route: fly → dwell → next-step timer loop (slowed for cinematic pacing: 3.4s fly / 7.5s dwell), drives `journey-store` and camera `journey-orbit` phase. The galaxy itself draws NOTHING mission-related (route-trails.tsx was deleted) — `mission-focus-sync.tsx` instead syncs the current step to `galaxy-store`'s focused/focusedStation, so the camera's destination is highlighted via the same Focus Mode a manual click triggers (dim + darken + Left Panel update). The Mission Panel (Bottom Panel, always present) is the only mission UI: step tracker with checkmarks/glow/lock states, a per-step "Captain says / estimated time / why it matters" story strip (`mission-narration.ts` supplies estimate+reason), route-wide APY/risk, and an Explorer Badge on completion.
+Auto-play cinematic playback of a route: fly → dwell → next-step timer loop (slowed for cinematic pacing: 3.4s fly / 7.5s dwell), drives `journey-store` and camera `journey-orbit` phase. The galaxy itself draws NOTHING mission-related (route-trails.tsx was deleted) — `mission-focus-sync.tsx` instead syncs the current step to `galaxy-store`'s focused/focusedStation, so the camera's destination is highlighted via the same Focus Mode a manual click triggers (dim + darken + Left Panel update). The Mission Panel (Bottom Panel, always present) is the only mission UI, built as a command center rather than a checklist: an animated progress bar, a dominant "current objective" card (glowing 52px icon, Captain line, estimate+reason from `mission-narration.ts`) flanked by shrunk completed/upcoming dot trails, route-wide APY/risk, and an Explorer Badge on completion. All step nodes stay mounted for the whole mission so state transitions (completed → current → locked) animate size/glow/color instead of swapping DOM nodes.
 
 **Optimizer** (`src/lib/optimizer/`)
 `opportunity-graph.ts` (directed graph) → DFS path search → `constraints.ts` filtering → `scorer.ts` multi-factor scoring → `simulator.ts`. `optimizer.ts` returns top 8 scored routes. Backed by `optimizer-store.ts`.
