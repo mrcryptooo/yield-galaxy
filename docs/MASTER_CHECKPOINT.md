@@ -24,7 +24,7 @@ Final UX + Visual Polish (complete)
 **Project Health:** Stable. Working tree clean, no uncommitted changes.
 
 **Current Git Commit:**
-`b96f380a9dc4f6d6a9664238303afde362c2a35e` — "Final UX/visual polish pass: typography, glass, branding, sun, background, stations, planet cards, captain, camera"
+`d7fa8c0cb4e4dcfb16555f9edd70afd52a1f933b` — "Art direction pass v2: sun logo wrap, real Explore links, safe HUD layout, mission-style journey, captain intelligence"
 
 **Current Branch:**
 `main` (up to date with `origin/main`)
@@ -143,7 +143,11 @@ All under `C:\Users\M\Desktop\sols\public\assets\`:
 - [ ] Transaction execution — real on-chain execution not implemented (simulation-only today)
 - [x] Final UX polish — global consistency pass done (typography, glass, spacing, HUD panel collision fix)
 
-Known pre-existing, out-of-scope condition: `npm run lint` reports 48 errors / 9 warnings, all inherent to idiomatic React Three Fiber code (imperative mutation of Three.js objects inside `useFrame`, `Math.random` in `useMemo`, ref access during render) across locked systems (`atmosphere.tsx`, `star-field.tsx`, `route-trails.tsx`, `world-events.tsx`, `world-life.tsx`, `galaxy-camera.tsx`). Verified byte-identical against commit `d30884d` (before this session's changes) via `git stash` — this session introduced zero new lint errors.
+Known pre-existing, out-of-scope condition: `npm run lint` reports 48 errors / 9 warnings, all inherent to idiomatic React Three Fiber code (imperative mutation of Three.js objects inside `useFrame`, `Math.random` in `useMemo`, ref access during render) across locked systems (`atmosphere.tsx`, `star-field.tsx`, `route-trails.tsx`, `world-events.tsx`, `world-life.tsx`, `galaxy-camera.tsx`). Verified byte-identical against commit `d30884d` (before the first polish pass) via `git stash` — introduced zero new lint errors since.
+
+Known unfixable-by-code condition: the visible line crossing the USX planet is a decorative orbital ring with an embedded warning-triangle icon **painted directly into `usx-planet.webp`'s pixels** — confirmed by opening the source file directly. Not a geometry/UV/material/rotation issue; no Three.js code change can remove baked-in pixel content. Fixing it requires either a new/edited source asset, or an explicit decision to add a code-level visual overlay to mask that specific region (not attempted — risks looking worse without image tooling to target it precisely).
+
+Two real duplicate-React-key bugs were found and fixed during these passes (not pre-existing — introduced by upstream data/logic, not by this session's UI edits): (1) `Protocol.id` collisions in `build-planet-data.ts` when two opportunities shared a slug — fixed by appending the real opportunity id. (2) `OptimizedRoute.id` collisions in `optimizer.ts` when the DFS path-finder yielded the same node sequence via parallel edges — fixed by deduping candidates by id before ranking.
 
 ---
 
