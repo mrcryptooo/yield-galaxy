@@ -19,12 +19,12 @@ C:\Users\M\Desktop\sols
 # Current Status
 
 **Current Phase:**
-Phase 13 — Wallet Integration (real Solana wallet connection: Phantom/Backpack/Solflare, live balances, Captain/Mission Control/Galaxy wallet-awareness)
+Phase 14 — Portfolio Intelligence (Portfolio tab, wallet-derived dashboard, wallet-adaptive missions)
 
 **Project Health:** Stable. Working tree clean, no uncommitted changes.
 
 **Current Git Commit:**
-`37c5ab9` — "Phase 13: real Solana wallet integration (Phantom, Backpack, Solflare)"
+`1c3a102` — "Phase 14: Portfolio Intelligence dashboard + wallet-adaptive missions"
 
 **Current Branch:**
 `main` (up to date with `origin/main`)
@@ -51,6 +51,7 @@ https://yield-galaxy.vercel.app (Vercel project `yield-galaxy`, org `team_bFeeyU
 - Phase 11 — Production Polish ✅
 - Phase 12 — Mission Control Intelligence ✅ (live command center, continuous discovery, discovery mode, narrative missions)
 - Phase 13 — Wallet Integration ✅ (real Phantom/Backpack/Solflare connection, live balances, no transactions yet)
+- Phase 14 — Portfolio Intelligence ✅ (Portfolio tab dashboard, wallet-adaptive mission start step, no transactions yet)
 
 (Note: commit history groups these under slightly different labels — `Milestone 4/5`, `Phase 6`, `Phase 7/7B`, `Phase 8`, `Phase 9`, `Phase 10`, `Phase 11` — but the delivered scope matches the list above 1:1.)
 
@@ -65,7 +66,7 @@ Full-viewport R3F `Canvas` scene: `galaxy-scene.tsx` composes `star-field`, `neb
 Single owner of all camera motion. State machine: `opening → idle → flying → journey-orbit`. Smootherstep easing, incommensurate-frequency idle drift, layered ESC navigation (journey → protocol → planet → galaxy). No UI element is allowed to move the camera directly.
 
 **HUD** (`src/components/hud/`)
-Unified CSS Grid app shell (`app-shell.tsx`): persistent Top Bar (logo/wordmark/Galaxy-List switch + reserved space for future Wallet/Portfolio/Settings/Notifications), Left Panel (`planet-info-panel.tsx`, `station-info-panel.tsx`, `captain-presence.tsx`), Center (galaxy/list, no chrome), Right Panel (`comms-console.tsx`, `route-selector.tsx`, `telemetry-strip.tsx`), Bottom Panel (`mission-panel.tsx`). Every panel shares one `.shell-panel` glass class — no floating windows, no independently `position:fixed` HUD elements.
+Unified CSS Grid app shell (`app-shell.tsx`): persistent Top Bar (logo/wordmark, a Galaxy/List/Portfolio switch — one deduped map over the three tabs, not three copy-pasted buttons — + `wallet-connect.tsx` in the reserved space, Settings/Notifications still not built), Left Panel (`planet-info-panel.tsx`, `station-info-panel.tsx`, `captain-presence.tsx`), Center (galaxy/list/portfolio, no chrome), Right Panel (`comms-console.tsx`, `route-selector.tsx`, `telemetry-strip.tsx`), Bottom Panel (`mission-panel.tsx`). Every panel shares one `.shell-panel` glass class — no floating windows, no independently `position:fixed` HUD elements.
 
 **Captain** (`src/lib/captain/` + `hud/captain-presence.tsx`)
 Pure-function intelligence pipeline: `analysis.ts → insights.ts → risk.ts → recommendations.ts → speech.ts → summary.ts` (orchestrated by `buildBriefing()`). Rendered via 5 state images (idle/thinking/talking/success/alert) driven by `journey-store` + `execution-store` + `captain-store`.
@@ -82,6 +83,11 @@ Objective headlines (`getNarrativeLabel()` in `mission-narration.ts`) are a pres
 
 **Wallet** (`src/stores/wallet-store.ts`, `src/lib/wallet/`, `src/components/providers/solana-wallet-provider.tsx`, `hud/wallet-connect.tsx`)
 A dedicated store — deliberately not mixed with journey/execution/optimizer state — backed by the official `@solana/wallet-adapter-react` (+ `-base`, `-phantom`, `-solflare`; Backpack auto-registers via the Wallet Standard, which is how modern wallet-adapter recommends supporting it — there's no maintained legacy adapter package for it). `solana-wallet-provider.tsx` wraps `<HomeContent>` in `page.tsx` with `ConnectionProvider`/`WalletProvider` and a `WalletStoreBridge` that mirrors the (hook-based) adapter context into the store and funnels every wallet error (rejected/not installed/wrong network/RPC failure/disconnected) through `onError` into `store.error` instead of an unhandled console error. `store.connect(walletName?)`/`disconnect()`/`refresh()` work from anywhere — Top Bar, Captain, Mission Control — without those callers needing `useWallet()`/`useConnection()` directly. `lib/wallet/portfolio.ts` does real on-chain reads only: SOL via `getBalance`, USDC/USDT via `getParsedTokenAccountsByOwner` against their canonical mainnet mints. USX/eUSX/SLX/stSLX are real Solstice Finance tokens, but their mint addresses couldn't be verified against an authoritative source in this environment (`docs.solstice.finance` blocked automated fetching) — rather than risk hardcoding a wrong stablecoin-shaped address, `lib/wallet/tokens.ts` leaves them `mint: null` and the portfolio service reports them `supported: false` (untracked, not a fabricated zero). Protocol positions (e.g. Kamino obligations) return a real empty list — position detection isn't implemented yet, so `positions` is honestly empty rather than fabricated. Wired into: Top Bar (`wallet-connect.tsx` — connect menu / connected chip with icon+name+short address+stablecoin portfolio figure), Captain (`captain-presence.tsx` — one-off transient reaction on connect/disconnect, same fade-then-resume pattern as the existing view/risk transients), Mission Control (`mission-panel.tsx` — real "Available: X TOKEN" line on acquire/swap/convert/stake steps, via a new optional `assetSymbol` on `RouteNode`/`RouteStepDef` in `route-engine.ts`/`dynamic-route-builder.ts`), and the Galaxy (`hero-planets.tsx`/`stations.tsx` — a real holding/position gives a +0.15 glow boost on top of the existing spring-damped glow, no new geometry). Transactions/swap/deposit/withdraw/stake are explicitly out of scope — the Execution Engine still runs on `MockWalletAdapter`.
+
+**Portfolio** (`src/components/portfolio/portfolio-view.tsx`, `src/lib/portfolio/analysis.ts`, `src/lib/wallet/adaptive-route.ts`, `src/lib/wallet/price.ts`)
+A third Top Bar tab (`view-store.mode === 'portfolio'`), rendered as the same kind of CenterPanel overlay as List View — Galaxy stays mounted underneath either way. `buildPortfolioIntelligence()` (pure function, styled like `src/lib/captain/*`) turns wallet-store state into Total Value / 24h Change / Active Positions / Idle Assets / Estimated Annual Yield / Overall Risk / Asset Allocation / Protocol Allocation / Suggested Actions — SOL is priced via a real CoinGecko fetch (`lib/wallet/price.ts`, graceful `null` on failure, never fabricated), USDC/USDT at the standard ~$1 peg, and USX/eUSX/SLX/stSLX stay `supported:false` (untracked, see Wallet architecture note) and excluded from totals. Because protocol position detection isn't built yet, "idle" means "everything held," Protocol Allocation is an honest $0/0%/0-position placeholder per protocol rather than an empty table, and Estimated Annual Yield is explicitly framed as *potential* yield from the optimizer's best route for that idle capital, not a claim about capital already earning. Active Positions and Mission Opportunities both render premium empty states instead of an empty table when there's nothing to show. Mission Opportunities launches real optimizer routes through the same `startJourney()` path Route Selector uses.
+
+Wallet-adaptive missions: `lib/wallet/adaptive-route.ts`'s `computeAdaptiveStartStep()` walks a route's leading steps and skips any the wallet already satisfies (e.g. skip "Acquire Fuel" if USDC is already held; skip through to "Deposit" if the destination asset is already held) — route logic/order is untouched, only which index a freshly-launched `ActiveRoute` starts on. `journey-store.startJourney()` gained an optional `initialStep` param (default `0`, fully backward compatible) to carry it. Wired into every route-launch path: `route-selector.tsx`, `mission-panel.tsx`'s continuous-discovery auto-launch, and the Portfolio tab's Mission Opportunities card.
 
 **Optimizer** (`src/lib/optimizer/`)
 `opportunity-graph.ts` (directed graph) → DFS path search → `constraints.ts` filtering → `scorer.ts` multi-factor scoring → `simulator.ts`. `optimizer.ts` returns top 8 scored routes. Backed by `optimizer-store.ts`.
@@ -155,6 +161,8 @@ All under `C:\Users\M\Desktop\sols\public\assets\`:
 - [ ] USX/eUSX/SLX/stSLX on-chain balances — mint addresses not yet verified against an authoritative source (see Wallet architecture note); reported as untracked, not fabricated
 - [ ] Protocol position detection (e.g. Kamino obligations) — not implemented; wallet store's `positions` is honestly empty rather than fabricated
 - [ ] Transaction execution — real on-chain execution not implemented (simulation-only today, execution engine still uses `MockWalletAdapter`)
+- [x] Portfolio dashboard — Portfolio tab with real wallet-derived intelligence (Total Value/24h Change/Idle Assets/Estimated Yield/Allocation/Suggested Actions)
+- [x] Wallet-adaptive missions — routes now start past any leading step the wallet's real holdings already satisfy
 - [x] Final UX polish — global consistency pass done (typography, glass, spacing, HUD panel collision fix)
 
 Known pre-existing, out-of-scope condition: `npm run lint` reports 48 errors / 9 warnings, all inherent to idiomatic React Three Fiber code (imperative mutation of Three.js objects inside `useFrame`, `Math.random` in `useMemo`, ref access during render) across locked systems (`atmosphere.tsx`, `star-field.tsx`, `route-trails.tsx`, `world-events.tsx`, `world-life.tsx`, `galaxy-camera.tsx`). Verified byte-identical against commit `d30884d` (before the first polish pass) via `git stash` — introduced zero new lint errors since.
@@ -167,8 +175,8 @@ Two real duplicate-React-key bugs were found and fixed during these passes (not 
 
 # Next Milestone
 
-**Phase 14 — Transactions** (not started; explicitly deferred by the Phase 13 brief)
+**Phase 15 — Transactions** (not started; explicitly deferred by both the Phase 13 and Phase 14 briefs)
 
-Swap / Deposit / Withdraw / Stake and a real Portfolio page. Will need to replace `MockWalletAdapter` in the (locked) Execution Engine with the real wallet-store's signing capability, and a verified mint address for USX/eUSX/SLX/stSLX before their balances can be tracked on-chain.
+Swap / Deposit / Withdraw / Stake / LP execution and real transaction signing. Will need to replace `MockWalletAdapter` in the (locked) Execution Engine with the real wallet-store's signing capability, a verified mint address for USX/eUSX/SLX/stSLX before their balances can be tracked on-chain, and real protocol position detection (e.g. Kamino obligations) before Active Positions / Protocol Allocation / Overall Risk can show anything beyond their current honest placeholders.
 
 Everything from now on must be an extension of the existing architecture. Nothing should be rebuilt from scratch unless explicitly requested.
