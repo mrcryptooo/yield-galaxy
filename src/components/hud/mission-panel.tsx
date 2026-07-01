@@ -129,94 +129,117 @@ export function MissionPanel({ planetData }: { planetData: Record<string, Planet
         </div>
       </div>
 
-      <div style={{ height: '1px', background: 'rgba(246,160,77,0.12)' }} />
+      {/* Progress bar — animates as the mission advances, not a static rail */}
+      <div style={{ height: '3px', borderRadius: '2px', background: 'rgba(245,240,235,0.06)', overflow: 'hidden' }}>
+        <div style={{
+          height: '100%', borderRadius: '2px',
+          width: `${((activeRoute.currentStep + (completed ? 1 : 0.5)) / activeRoute.nodes.length) * 100}%`,
+          background: 'linear-gradient(90deg, rgba(246,160,77,0.5), rgba(246,160,77,0.95))',
+          boxShadow: '0 0 10px rgba(246,160,77,0.5)',
+          transition: `width var(--dur-slow) var(--ease-premium)`,
+        }} />
+      </div>
 
-      <div style={{ display: 'flex', alignItems: 'stretch', gap: '20px', flex: 1 }}>
-        {/* Step tracker */}
-        <div style={{ display: 'flex', alignItems: 'flex-start', overflowX: 'auto' }}>
+      {/* Command center: only the CURRENT objective dominates. Completed and
+          future objectives shrink to minimal dots on either side — every
+          node stays mounted the whole mission, so flipping isCompleted/
+          isCurrent animates size/glow smoothly instead of swapping DOM. */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flex: 1 }}>
+        {/* Completed trail — minimal, shrunk */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
           {activeRoute.nodes.map((node, i) => {
             const isCompleted = i < activeRoute.currentStep || completed;
             const isCurrent = i === activeRoute.currentStep && !completed;
+            if (isCurrent) return null;
             return (
-              <div key={node.id} style={{ display: 'flex', alignItems: 'flex-start', flexShrink: 0 }}>
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '78px' }}>
-                  <div style={{
-                    width: isCurrent ? '26px' : '20px',
-                    height: isCurrent ? '26px' : '20px',
-                    borderRadius: '50%',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    background: isCompleted ? 'rgba(246,160,77,0.22)' : isCurrent ? 'rgba(246,160,77,0.16)' : 'rgba(245,240,235,0.04)',
-                    border: isCurrent ? '2px solid rgba(246,160,77,0.9)' : isCompleted ? '1px solid rgba(246,160,77,0.4)' : '1px solid rgba(245,240,235,0.1)',
-                    boxShadow: isCurrent ? '0 0 18px rgba(246,160,77,0.55), 0 0 32px rgba(246,160,77,0.2)' : isCompleted ? '0 0 8px rgba(246,160,77,0.2)' : 'none',
-                    transition: 'all var(--dur-slow) var(--ease-premium)',
-                    animation: isCompleted ? 'fadeIn var(--dur-slow) var(--ease-premium) both' : undefined,
-                  }}>
-                    {isCompleted ? (
-                      <span style={{ fontSize: '12px', color: 'rgba(246,160,77,0.95)', fontWeight: 700 }}>✓</span>
-                    ) : isCurrent ? (
-                      <span style={{ fontSize: '11px', color: 'rgba(246,160,77,0.95)' }}>►</span>
-                    ) : (
-                      <span style={{ fontSize: '9px', color: 'rgba(245,240,235,0.25)' }}>○</span>
-                    )}
-                  </div>
-                  <span style={{
-                    marginTop: '6px', textAlign: 'center', whiteSpace: 'nowrap',
-                    fontSize: isCurrent ? '12px' : '10px',
-                    fontFamily: 'var(--font-geist-mono), monospace', letterSpacing: '0.03em',
-                    color: isCurrent ? 'rgba(246,160,77,0.95)' : isCompleted ? 'rgba(245,240,235,0.6)' : 'rgba(245,240,235,0.22)',
-                    fontWeight: isCurrent ? 700 : 500,
-                    transition: 'color var(--dur-slow) var(--ease-premium)',
-                  }}>
-                    {node.label}
-                  </span>
-                  <span style={{
-                    fontSize: '8px', fontWeight: 600, letterSpacing: '0.1em', marginTop: '2px',
-                    color: isCurrent ? 'rgba(246,160,77,0.4)' : 'rgba(245,240,235,0.15)',
-                  }}>
-                    {isCompleted ? 'DONE' : isCurrent ? 'CURRENT' : 'LOCKED'}
-                  </span>
-                </div>
-                {i < activeRoute.nodes.length - 1 && (
-                  <div style={{
-                    width: '18px', height: '2px', marginTop: '12px',
-                    background: isCompleted ? 'rgba(246,160,77,0.4)' : 'rgba(245,240,235,0.08)',
-                    transition: 'background var(--dur-slow) var(--ease-premium)',
-                  }} />
-                )}
-              </div>
+              <div
+                key={node.id}
+                title={node.label}
+                style={{
+                  width: isCompleted ? '9px' : '5px',
+                  height: isCompleted ? '9px' : '5px',
+                  borderRadius: '50%',
+                  flexShrink: 0,
+                  background: isCompleted ? 'rgba(246,160,77,0.6)' : 'rgba(245,240,235,0.12)',
+                  boxShadow: isCompleted ? '0 0 6px rgba(246,160,77,0.35)' : 'none',
+                  transition: 'all var(--dur-slow) var(--ease-premium)',
+                }}
+              />
             );
           })}
         </div>
 
-        <div style={{ width: '1px', alignSelf: 'stretch', background: 'rgba(246,160,77,0.1)' }} />
-
-        {/* Current-step story: what Captain says, how long, and why it matters */}
+        {/* Dominant current objective — the only thing with real visual weight */}
         <div key={current.id} style={{
-          flex: 1, display: 'flex', flexDirection: 'column', gap: '6px', justifyContent: 'center',
+          flex: 1, display: 'flex', alignItems: 'center', gap: '16px',
           animation: 'fadeIn var(--dur-slow) var(--ease-premium) both',
         }}>
-          {completed ? (
-            <div style={{ fontSize: 'var(--fs-body)', fontWeight: 600, color: 'rgba(246,160,77,0.9)' }}>
-              Mission complete — nice work, Explorer.
+          <div style={{
+            width: '52px', height: '52px', borderRadius: '50%', flexShrink: 0,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            background: completed ? 'rgba(246,160,77,0.28)' : 'rgba(246,160,77,0.14)',
+            border: '2px solid rgba(246,160,77,0.9)',
+            boxShadow: '0 0 24px rgba(246,160,77,0.6), 0 0 44px rgba(246,160,77,0.25)',
+            transition: 'all var(--dur-slow) var(--ease-premium)',
+          }}>
+            <span style={{ fontSize: '20px', color: 'rgba(246,160,77,0.95)' }}>{completed ? '✓' : '►'}</span>
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', minWidth: 0 }}>
+            <div style={{
+              fontSize: '9px', fontWeight: 700, letterSpacing: '0.16em',
+              color: 'rgba(246,160,77,0.5)',
+            }}>
+              {completed ? 'MISSION COMPLETE' : 'CURRENT OBJECTIVE'}
             </div>
-          ) : (
-            <>
-              {currentLine && (
-                <div style={{ fontSize: 'var(--fs-caption)', lineHeight: '1.5', color: 'rgba(245,240,235,0.75)' }}>
-                  <span style={{ color: 'rgba(246,160,77,0.6)', fontWeight: 600 }}>Captain: </span>
-                  {currentLine}
+            <div style={{
+              fontSize: 'var(--fs-title)', fontWeight: 700, letterSpacing: '0.01em',
+              color: 'rgba(250,246,242,0.95)', textShadow: '0 0 20px rgba(246,160,77,0.2)',
+            }}>
+              {completed ? 'Nice work, Explorer.' : current.label}
+            </div>
+            {completed ? (
+              <div style={{ fontSize: 'var(--fs-caption)', color: 'rgba(245,240,235,0.6)' }}>
+                Excellent work. Your route has been completed successfully.
+              </div>
+            ) : (
+              <>
+                {currentLine && (
+                  <div style={{ fontSize: 'var(--fs-caption)', lineHeight: '1.4', color: 'rgba(245,240,235,0.7)' }}>
+                    <span style={{ color: 'rgba(246,160,77,0.6)', fontWeight: 600 }}>Captain: </span>
+                    {currentLine}
+                  </div>
+                )}
+                <div style={{ display: 'flex', gap: '16px' }}>
+                  <span style={{ fontSize: '10px', color: 'rgba(245,240,235,0.4)' }}>
+                    <span style={{ color: 'rgba(246,160,77,0.5)', fontWeight: 600 }}>Estimated: </span>{meta.estimate}
+                  </span>
+                  <span style={{ fontSize: '10px', color: 'rgba(245,240,235,0.4)' }}>
+                    <span style={{ color: 'rgba(246,160,77,0.5)', fontWeight: 600 }}>Reason: </span>{meta.reason}
+                  </span>
                 </div>
-              )}
-              <div style={{ display: 'flex', gap: '18px' }}>
-                <span style={{ fontSize: '11px', color: 'rgba(245,240,235,0.4)' }}>
-                  <span style={{ color: 'rgba(246,160,77,0.5)', fontWeight: 600 }}>Estimated: </span>{meta.estimate}
-                </span>
-              </div>
-              <div style={{ fontSize: '11px', color: 'rgba(245,240,235,0.4)' }}>
-                <span style={{ color: 'rgba(246,160,77,0.5)', fontWeight: 600 }}>Reason: </span>{meta.reason}
-              </div>
-            </>
-          )}
+              </>
+            )}
+          </div>
+        </div>
+
+        {/* Upcoming trail — minimal, stays out of the way */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+          {activeRoute.nodes.map((node, i) => {
+            const isLocked = i > activeRoute.currentStep && !completed;
+            if (!isLocked) return null;
+            return (
+              <div
+                key={node.id}
+                title={node.label}
+                style={{
+                  width: '5px', height: '5px', borderRadius: '50%', flexShrink: 0,
+                  background: 'rgba(245,240,235,0.1)',
+                  transition: 'all var(--dur-slow) var(--ease-premium)',
+                }}
+              />
+            );
+          })}
         </div>
       </div>
     </div>
